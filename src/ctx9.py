@@ -17,7 +17,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 
 
 class LauncherError(RuntimeError):

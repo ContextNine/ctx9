@@ -21,6 +21,27 @@
       },
       "provides": ["codex-plugin:ctx9/codex-repo-sync"],
       "documentation": "https://github.com/MDerman/codex-repo-sync#readme"
+    },
+    {
+      "id": "codefoldersync",
+      "name": "CodeFolderSync",
+      "version": "0.2.1",
+      "platforms": ["linux", "macos"],
+      "architectures": ["aarch64", "x86_64"],
+      "release": {
+        "repository": "MDerman/codefoldersync",
+        "tag": "v0.2.1",
+        "archive_url": "https://github.com/MDerman/codefoldersync/releases/download/v0.2.1/codefoldersync-0.2.1.tar.gz",
+        "archive_sha256": "cc821e9f8ed1b106b178ee02ab1a1f19237e04c7ce3597cd71575f83ae067418",
+        "archive_root": "codefoldersync-0.2.1"
+      },
+      "installer": {
+        "path": "scripts/install.py",
+        "install_args": [],
+        "doctor_args": ["--verify"]
+      },
+      "provides": ["command:codefoldersync"],
+      "documentation": "https://github.com/MDerman/codefoldersync#readme"
     }
   ]
 }
