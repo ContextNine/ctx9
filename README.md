@@ -9,7 +9,7 @@ The launcher does not require the Context Vault, a CTX9 workspace checkout, or p
 Download the release archive and checksum from [GitHub Releases](https://github.com/MDerman/ctx9/releases), verify them, extract the archive, then run:
 
 ```bash
-python3 ctx9-0.1.1/scripts/install.py
+python3 ctx9-0.1.2/scripts/install.py
 ctx9 --version
 ctx9 list
 ```
@@ -28,6 +28,6 @@ ctx9 doctor
 
 `components.json` is the release catalog. Every component remains independently versioned and owns its installer and doctor. `ctx9 update` installs the exact component versions approved by the installed launcher catalog; updating the launcher provides a newer catalog.
 
-The initial components are [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), a public Codex plugin for repository configuration synchronization, and [CodeFolderSync](https://github.com/MDerman/codefoldersync), a peer-to-hub Code workspace synchronizer.
+The catalog currently includes [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), [CodeFolderSync](https://github.com/MDerman/codefoldersync), [File Upload](https://github.com/MDerman/file-upload), and the dependency-free [CTX9 Artifacts CLI](https://github.com/MDerman/ctx9-artifacts-cli). Each remains independently versioned and released.
 
 See [.docs/release-and-components.md](.docs/release-and-components.md) for the integrity and publication contract.

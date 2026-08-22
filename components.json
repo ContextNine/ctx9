@@ -42,6 +42,48 @@
       },
       "provides": ["command:codefoldersync"],
       "documentation": "https://github.com/MDerman/codefoldersync#readme"
+    },
+    {
+      "id": "file-upload",
+      "name": "File Upload",
+      "version": "1.1.1",
+      "platforms": ["linux", "macos"],
+      "architectures": ["aarch64", "x86_64"],
+      "release": {
+        "repository": "MDerman/file-upload",
+        "tag": "v1.1.1",
+        "archive_url": "https://github.com/MDerman/file-upload/releases/download/v1.1.1/file-upload-1.1.1.tar.gz",
+        "archive_sha256": "a5c12349071376bd6576a41ab80d28070eeb4f7a01ab144e461ff607f8f380b9",
+        "archive_root": "file-upload-1.1.1"
+      },
+      "installer": {
+        "path": "scripts/install.py",
+        "install_args": [],
+        "doctor_args": ["--verify"]
+      },
+      "provides": ["command:file-upload"],
+      "documentation": "https://github.com/MDerman/file-upload#readme"
+    },
+    {
+      "id": "ctx9-artifacts",
+      "name": "CTX9 Artifacts CLI",
+      "version": "1.0.0",
+      "platforms": ["linux", "macos"],
+      "architectures": ["aarch64", "x86_64"],
+      "release": {
+        "repository": "MDerman/ctx9-artifacts-cli",
+        "tag": "v1.0.0",
+        "archive_url": "https://github.com/MDerman/ctx9-artifacts-cli/releases/download/v1.0.0/ctx9-artifacts-1.0.0.tar.gz",
+        "archive_sha256": "413b0a8150502747127cc9fbfa900c5f719d9612eabca7be35f924e69c13581d",
+        "archive_root": "ctx9-artifacts-1.0.0"
+      },
+      "installer": {
+        "path": "scripts/install.py",
+        "install_args": [],
+        "doctor_args": ["--verify"]
+      },
+      "provides": ["command:ctx9-artifacts"],
+      "documentation": "https://github.com/MDerman/ctx9-artifacts-cli#readme"
     }
   ]
 }
