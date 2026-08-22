@@ -9,12 +9,13 @@ The launcher does not require the Context Vault, a CTX9 workspace checkout, or p
 Download the release archive and checksum from [GitHub Releases](https://github.com/MDerman/ctx9/releases), verify them, extract the archive, then run:
 
 ```bash
-python3 ctx9-0.2.0/scripts/install.py
+python3 ctx9-0.2.1/scripts/install.py
 ctx9 --version
 ctx9 list
 ```
 
 The default locations are `~/.local/bin/ctx9` and `~/.local/share/ctx9`. Use `--install-dir` and `--data-dir` when another prefix is required.
+The installed entrypoint prefers the fleet-managed Homebrew Python 3.12 runtime on macOS, then uses `python3` on other supported systems. This avoids accidentally invoking Apple's Xcode-gated Python shim from a non-login service or SSH session.
 
 ## Components
 

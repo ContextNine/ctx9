@@ -83,7 +83,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
     def test_list_and_version(self) -> None:
         version = self.run_cli("--version")
         self.assertEqual(version.returncode, 0, version.stderr)
-        self.assertEqual(version.stdout.strip(), "ctx9 0.2.0")
+        self.assertEqual(version.stdout.strip(), "ctx9 0.2.1")
         listed = self.run_cli("list", "--json")
         self.assertEqual(listed.returncode, 0, listed.stderr)
         self.assertEqual(json.loads(listed.stdout)[0]["id"], "codex-repo-sync")
@@ -112,13 +112,20 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
     def test_launcher_install_verify_and_second_run(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            install_dir = root / "bin"
+            data_dir = root / "share" / "ctx9"
+            install_dir.mkdir()
+            legacy_executable = data_dir / "src" / "ctx9.py"
+            legacy_executable.parent.mkdir(parents=True)
+            legacy_executable.write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+            (install_dir / "ctx9").symlink_to(legacy_executable)
             command = [
                 sys.executable,
                 str(INSTALLER),
                 "--install-dir",
-                str(root / "bin"),
+                str(install_dir),
                 "--data-dir",
-                str(root / "share" / "ctx9"),
+                str(data_dir),
                 "--json",
             ]
             first = subprocess.run(command, text=True, capture_output=True, check=False)
@@ -132,15 +139,16 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
             self.assertFalse(json.loads(second.stdout)["changed"])
             self.assertEqual(verify.returncode, 0, verify.stderr)
             self.assertTrue(json.loads(verify.stdout)["ready"])
+            self.assertFalse((install_dir / "ctx9").is_symlink())
             installed = subprocess.run(
-                [str(root / "bin" / "ctx9"), "--version"],
+                [str(install_dir / "ctx9"), "--version"],
                 text=True,
                 capture_output=True,
                 check=False,
                 env={**os.environ, "PATH": os.environ.get("PATH", "")},
             )
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            self.assertEqual(installed.stdout.strip(), "ctx9 0.2.0")
+            self.assertEqual(installed.stdout.strip(), "ctx9 0.2.1")
 
     def test_private_overlay_requires_narrow_binding_and_selects_exact_platform(self) -> None:
         private = {

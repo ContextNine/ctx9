@@ -7,12 +7,13 @@ import argparse
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import sys
 import tempfile
 from pathlib import Path
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 
 
 def source_root() -> Path:
@@ -29,6 +30,23 @@ def paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
     manifest = data_dir / "components.json"
     link = args.install_dir.expanduser().resolve() / "ctx9"
     return executable, manifest, link
+
+
+def launcher_script(executable: Path) -> bytes:
+    quoted_executable = shlex.quote(str(executable))
+    return (
+        "#!/bin/sh\n"
+        "# Managed by the CTX9 launcher.\n"
+        "set -eu\n"
+        "for interpreter in "
+        '"/opt/homebrew/opt/python@3.12/libexec/bin/python3" '
+        '"/usr/local/opt/python@3.12/libexec/bin/python3"; do\n'
+        '  if [ -x "$interpreter" ]; then\n'
+        f'    exec "$interpreter" {quoted_executable} "$@"\n'
+        "  fi\n"
+        "done\n"
+        f"exec python3 {quoted_executable} \"$@\"\n"
+    ).encode("utf-8")
 
 
 def report(args: argparse.Namespace, ready: bool, changed: bool, errors: list[str]) -> int:
@@ -65,10 +83,12 @@ def verify(args: argparse.Namespace) -> tuple[bool, list[str]]:
             errors.append(f"missing {label}: {installed}")
         elif file_digest(installed) != file_digest(expected):
             errors.append(f"unexpected {label} digest: {installed}")
-    if not link.is_symlink():
-        errors.append(f"launcher link is missing: {link}")
-    elif link.resolve() != executable:
-        errors.append(f"launcher link targets {link.resolve()}, expected {executable}")
+    if not link.is_file() or link.is_symlink():
+        errors.append(f"launcher entrypoint is missing: {link}")
+    elif link.read_bytes() != launcher_script(executable):
+        errors.append(f"unexpected launcher entrypoint digest: {link}")
+    elif not os.access(link, os.X_OK):
+        errors.append(f"launcher entrypoint is not executable: {link}")
     return not errors, errors
 
 
@@ -94,14 +114,22 @@ def install(args: argparse.Namespace) -> bool:
                 if temporary_path.exists():
                     temporary_path.unlink()
             changed = True
-    if link.exists() and not link.is_symlink():
-        raise RuntimeError(f"refusing to replace non-symlink: {link}")
-    if not link.is_symlink() or link.resolve() != executable:
-        temporary_link = link.with_name(f".{link.name}.tmp-{os.getpid()}")
-        if temporary_link.exists() or temporary_link.is_symlink():
-            temporary_link.unlink()
-        temporary_link.symlink_to(executable)
-        temporary_link.replace(link)
+    expected_entrypoint = launcher_script(executable)
+    if link.is_symlink() and link.resolve() != executable:
+        raise RuntimeError(f"refusing to replace unrelated symlink: {link}")
+    if link.is_file() and not link.is_symlink():
+        current_entrypoint = link.read_bytes()
+        if (
+            current_entrypoint != expected_entrypoint
+            and not current_entrypoint.startswith(b"#!/bin/sh\n# Managed by the CTX9 launcher.\n")
+        ):
+            raise RuntimeError(f"refusing to replace unrelated command: {link}")
+    if link.is_symlink() or not link.is_file() or link.read_bytes() != expected_entrypoint:
+        with tempfile.NamedTemporaryFile(dir=link.parent, delete=False) as temporary:
+            temporary_path = Path(temporary.name)
+            temporary.write(expected_entrypoint)
+        os.chmod(temporary_path, 0o755)
+        temporary_path.replace(link)
         changed = True
     return changed
 
