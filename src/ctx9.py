@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -13,11 +14,13 @@ import sys
 import tarfile
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-VERSION = "0.1.3"
+VERSION = "0.2.0"
+PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 
 
 class LauncherError(RuntimeError):
@@ -28,24 +31,120 @@ def default_manifest_path() -> Path:
     return Path(__file__).resolve().parent.parent / "components.json"
 
 
+def validate_component(component: dict[str, Any], *, private: bool) -> None:
+    component_id = component.get("id")
+    release = component.get("release", {})
+    if private:
+        if not isinstance(release.get("source_commit"), str) or not is_hex(release["source_commit"], 40):
+            raise LauncherError(f"{component_id}: private release requires an exact source commit")
+        version_tuple(component.get("version", ""))
+        minimum = release.get("minimum_launcher_version")
+        if not isinstance(minimum, str) or version_tuple(VERSION) < version_tuple(minimum):
+            raise LauncherError(f"{component_id}: launcher upgrade required")
+        artifacts = release.get("artifacts")
+        if not isinstance(artifacts, list) or not artifacts:
+            raise LauncherError(f"{component_id}: private release artifacts are required")
+        identities: set[tuple[str, str]] = set()
+        for artifact in artifacts:
+            digest = artifact.get("archive_sha256") if isinstance(artifact, dict) else None
+            if not isinstance(digest, str) or not is_hex(digest, 64):
+                raise LauncherError(f"{component_id}: invalid archive SHA-256")
+            if not all(isinstance(artifact.get(key), str) and artifact[key] for key in ("platform", "architecture", "archive_url", "archive_root")):
+                raise LauncherError(f"{component_id}: incomplete private artifact")
+            safe_private_url(artifact["archive_url"])
+            identity = artifact["platform"], artifact["architecture"]
+            if identity in identities:
+                raise LauncherError(f"{component_id}: duplicate private host artifact")
+            identities.add(identity)
+        return
+    digest = release.get("archive_sha256")
+    if not isinstance(digest, str) or len(digest) != 64:
+        raise LauncherError(f"{component_id}: invalid archive SHA-256")
+
+
+def version_tuple(value: str) -> tuple[int, int, int]:
+    try:
+        parts = value.removeprefix("v").split(".")
+        if len(parts) != 3:
+            raise ValueError
+        numbers = tuple(int(part) for part in parts)
+        return numbers[0], numbers[1], numbers[2]
+    except ValueError as error:
+        raise LauncherError(f"invalid semantic version: {value}") from error
+
+
+def is_hex(value: str, length: int) -> bool:
+    return len(value) == length and all(character in "0123456789abcdef" for character in value)
+
+
+def validate_manifest(data: Any, *, private: bool) -> dict[str, Any]:
+    expected_kind = "private-overlay" if private else None
+    if not isinstance(data, dict) or data.get("schema_version") != 1 or not isinstance(data.get("components"), list):
+        raise LauncherError("unsupported component manifest")
+    if data.get("catalog_kind") != expected_kind:
+        raise LauncherError("component manifest kind mismatch")
+    if private and data.get("credential_binding") != PRIVATE_CREDENTIAL_BINDING:
+        raise LauncherError("private catalog credential binding mismatch")
+    ids: set[str] = set()
+    for component in data["components"]:
+        component_id = component.get("id") if isinstance(component, dict) else None
+        if not isinstance(component_id, str) or not component_id or component_id in ids:
+            raise LauncherError("component IDs must be unique non-empty strings")
+        ids.add(component_id)
+        validate_component(component, private=private)
+        component["_private"] = private
+    return data
+
+
 def load_manifest(path: Path) -> dict[str, Any]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise LauncherError(f"cannot read component manifest {path}: {error}") from error
-    if data.get("schema_version") != 1 or not isinstance(data.get("components"), list):
-        raise LauncherError("unsupported component manifest")
-    ids: set[str] = set()
-    for component in data["components"]:
-        component_id = component.get("id")
-        if not isinstance(component_id, str) or not component_id or component_id in ids:
-            raise LauncherError("component IDs must be unique non-empty strings")
-        ids.add(component_id)
-        release = component.get("release", {})
-        digest = release.get("archive_sha256")
-        if not isinstance(digest, str) or len(digest) != 64:
-            raise LauncherError(f"{component_id}: invalid archive SHA-256")
-    return data
+    return validate_manifest(data, private=False)
+
+
+def private_headers(binding: str) -> dict[str, str]:
+    if binding != PRIVATE_CREDENTIAL_BINDING:
+        raise LauncherError("unsupported private catalog credential binding")
+    username = os.environ.get("CTX9_GITLAB_READ_USERNAME")
+    token = os.environ.get("CTX9_GITLAB_READ_TOKEN")
+    if not username or not token:
+        raise LauncherError(
+            "private catalog credential is unavailable; run through ctx9-gitlab-read exec"
+        )
+    encoded = base64.b64encode(f"{username}:{token}".encode()).decode()
+    return {"Authorization": f"Basic {encoded}"}
+
+
+def safe_private_url(url: str) -> None:
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.fragment:
+        raise LauncherError("private catalog URL must be credential-free HTTPS")
+
+
+def load_private_manifest(url: str, binding: str) -> dict[str, Any]:
+    safe_private_url(url)
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": f"ctx9/{VERSION}", **private_headers(binding)},
+    )
+    try:
+        with urllib.request.urlopen(request) as response:
+            data = json.load(response)
+    except (OSError, urllib.error.URLError, json.JSONDecodeError) as error:
+        raise LauncherError("private catalog retrieval failed") from error
+    return validate_manifest(data, private=True)
+
+
+def merge_manifests(public: dict[str, Any], private: dict[str, Any] | None) -> dict[str, Any]:
+    if private is None:
+        return public
+    components = [*public["components"], *private["components"]]
+    ids = [component["id"] for component in components]
+    if len(ids) != len(set(ids)):
+        raise LauncherError("private catalog cannot replace a public component")
+    return {"schema_version": 1, "components": components}
 
 
 def host_identity() -> tuple[str, str]:
@@ -85,8 +184,13 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def download(url: str, destination: Path) -> None:
-    request = urllib.request.Request(url, headers={"User-Agent": f"ctx9/{VERSION}"})
+def download(url: str, destination: Path, *, private: bool = False) -> None:
+    if private:
+        safe_private_url(url)
+    headers = {"User-Agent": f"ctx9/{VERSION}"}
+    if private:
+        headers.update(private_headers(PRIVATE_CREDENTIAL_BINDING))
+    request = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(request) as response, destination.open("wb") as output:
             while chunk := response.read(1024 * 1024):
@@ -111,19 +215,38 @@ def run_component(component: dict[str, Any], mode: str) -> dict[str, Any]:
     ensure_supported(component)
     release = component["release"]
     installer = component["installer"]
-    args_key = "doctor_args" if mode == "doctor" else "install_args"
+    args_key = {
+        "doctor": "doctor_args",
+        "rollback": "rollback_args",
+        "uninstall": "uninstall_args",
+    }.get(mode, "install_args")
+    if args_key not in installer:
+        raise LauncherError(f"{component['id']}: {mode} is not supported")
+    private = component.get("_private") is True
+    if private:
+        operating_system, architecture = host_identity()
+        matches = [
+            artifact
+            for artifact in release["artifacts"]
+            if artifact["platform"] == operating_system and artifact["architecture"] == architecture
+        ]
+        if len(matches) != 1:
+            raise LauncherError(f"{component['id']}: exact host artifact is unavailable")
+        artifact = matches[0]
+    else:
+        artifact = release
     with tempfile.TemporaryDirectory(prefix="ctx9-") as temporary:
         temporary_path = Path(temporary)
         archive_path = temporary_path / "component.tar.gz"
-        download(release["archive_url"], archive_path)
+        download(artifact["archive_url"], archive_path, private=private)
         actual_digest = sha256(archive_path)
-        if actual_digest != release["archive_sha256"]:
+        if actual_digest != artifact["archive_sha256"]:
             raise LauncherError(
                 f"{component['id']}: checksum mismatch; expected "
-                f"{release['archive_sha256']}, got {actual_digest}"
+                f"{artifact['archive_sha256']}, got {actual_digest}"
             )
         extract_archive(archive_path, temporary_path)
-        root = temporary_path / release["archive_root"]
+        root = temporary_path / artifact["archive_root"]
         installer_path = root / installer["path"]
         if not installer_path.is_file():
             raise LauncherError(f"{component['id']}: installer is missing from release")
@@ -174,10 +297,12 @@ def parser() -> argparse.ArgumentParser:
     command_parser.add_argument(
         "--manifest", type=Path, default=default_manifest_path(), help=argparse.SUPPRESS
     )
+    command_parser.add_argument("--private-catalog-url", help=argparse.SUPPRESS)
+    command_parser.add_argument("--credential-binding", help=argparse.SUPPRESS)
     subcommands = command_parser.add_subparsers(dest="command", required=True)
     list_parser = subcommands.add_parser("list", help="list available components")
     list_parser.add_argument("--json", action="store_true")
-    for name in ("install", "update", "doctor"):
+    for name in ("install", "update", "doctor", "rollback", "uninstall"):
         operation_parser = subcommands.add_parser(name)
         operation_parser.add_argument("component", nargs="?" if name != "install" else None)
         operation_parser.add_argument("--json", action="store_true")
@@ -187,7 +312,15 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     try:
-        manifest = load_manifest(args.manifest)
+        public_manifest = load_manifest(args.manifest)
+        if bool(args.private_catalog_url) != bool(args.credential_binding):
+            raise LauncherError("private catalog URL and credential binding must be provided together")
+        private_manifest = (
+            load_private_manifest(args.private_catalog_url, args.credential_binding)
+            if args.private_catalog_url
+            else None
+        )
+        manifest = merge_manifests(public_manifest, private_manifest)
         if args.command == "list":
             result = [
                 {
@@ -206,7 +339,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.component
             else manifest["components"]
         )
-        mode = "doctor" if args.command == "doctor" else "install"
+        mode = args.command if args.command in {"doctor", "rollback", "uninstall"} else "install"
         results = [run_component(component, mode) for component in selected]
         emit(results, args.json)
         return 0

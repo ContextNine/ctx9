@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import subprocess
@@ -9,10 +10,15 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 CLI = ROOT / "src" / "ctx9.py"
 INSTALLER = ROOT / "scripts" / "install.py"
+SPEC = importlib.util.spec_from_file_location("ctx9_launcher", CLI)
+assert SPEC and SPEC.loader
+MODULE = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
 
 
 class LauncherTests(unittest.TestCase):
@@ -77,7 +83,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
     def test_list_and_version(self) -> None:
         version = self.run_cli("--version")
         self.assertEqual(version.returncode, 0, version.stderr)
-        self.assertEqual(version.stdout.strip(), "ctx9 0.1.3")
+        self.assertEqual(version.stdout.strip(), "ctx9 0.2.0")
         listed = self.run_cli("list", "--json")
         self.assertEqual(listed.returncode, 0, listed.stderr)
         self.assertEqual(json.loads(listed.stdout)[0]["id"], "codex-repo-sync")
@@ -134,7 +140,72 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                 env={**os.environ, "PATH": os.environ.get("PATH", "")},
             )
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            self.assertEqual(installed.stdout.strip(), "ctx9 0.1.3")
+            self.assertEqual(installed.stdout.strip(), "ctx9 0.2.0")
+
+    def test_private_overlay_requires_narrow_binding_and_selects_exact_platform(self) -> None:
+        private = {
+            "schema_version": 1,
+            "catalog_kind": "private-overlay",
+            "credential_binding": "ctx9-gitlab-group-read",
+            "components": [
+                {
+                    "id": "private-fixture",
+                    "name": "Private fixture",
+                    "version": "1.0.0",
+                    "platforms": ["macos", "linux"],
+                    "architectures": ["aarch64", "x86_64"],
+                    "release": {
+                        "source_commit": "a" * 40,
+                        "minimum_launcher_version": "0.2.0",
+                        "artifacts": [
+                            {
+                                "platform": "macos",
+                                "architecture": "aarch64",
+                                "archive_url": "https://gitlab.com/example/private.tar.gz",
+                                "archive_sha256": "1" * 64,
+                                "archive_root": "fixture-1.0.0",
+                            }
+                        ],
+                    },
+                    "installer": {
+                        "path": "scripts/install.py",
+                        "install_args": [],
+                        "doctor_args": ["--verify"],
+                        "rollback_args": ["--rollback"],
+                        "uninstall_args": ["--uninstall"],
+                    },
+                    "provides": ["command:fixture"],
+                    "documentation": "https://example.com",
+                }
+            ],
+        }
+        with mock.patch.dict(
+            os.environ,
+            {"CTX9_GITLAB_READ_USERNAME": "synthetic", "CTX9_GITLAB_READ_TOKEN": "synthetic"},
+            clear=False,
+        ):
+            validated = MODULE.validate_manifest(private, private=True)
+            self.assertTrue(validated["components"][0]["_private"])
+            headers = MODULE.private_headers("ctx9-gitlab-group-read")
+        self.assertTrue(headers["Authorization"].startswith("Basic "))
+        self.assertNotIn("synthetic", json.dumps(validated))
+
+    def test_private_overlay_fails_closed_without_credential_or_exact_metadata(self) -> None:
+        with mock.patch.dict(os.environ, {}, clear=True):
+            with self.assertRaisesRegex(MODULE.LauncherError, "credential is unavailable"):
+                MODULE.private_headers("ctx9-gitlab-group-read")
+        with self.assertRaisesRegex(MODULE.LauncherError, "credential-free HTTPS"):
+            MODULE.safe_private_url("https://token@gitlab.com/catalog.json")
+        with self.assertRaisesRegex(MODULE.LauncherError, "credential binding mismatch"):
+            MODULE.validate_manifest(
+                {
+                    "schema_version": 1,
+                    "catalog_kind": "private-overlay",
+                    "credential_binding": "broad-token",
+                    "components": [],
+                },
+                private=True,
+            )
 
 
 if __name__ == "__main__":

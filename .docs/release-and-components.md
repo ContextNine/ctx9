@@ -24,3 +24,22 @@ Before adding or updating a catalog entry:
 5. publish a new launcher release and repeat fresh launcher acceptance.
 
 The catalog may not reference private repositories, workspace paths, credentials, production deployment, or mutable branch archives.
+
+## Private catalog overlay
+
+Private products use a separate value-free catalog with `catalog_kind: private-overlay` and the exact
+`ctx9-gitlab-group-read` credential binding. The public catalog remains unchanged. Run the launcher as the
+credential helper's child so authentication exists only for catalog and artifact requests:
+
+```bash
+ctx9-gitlab-read exec -- ctx9 \
+  --private-catalog-url https://gitlab.com/api/v4/projects/PROJECT/packages/generic/CATALOG/VERSION/components.json \
+  --credential-binding ctx9-gitlab-group-read \
+  install PRODUCT
+```
+
+Each private release entry must name an exact source commit, minimum launcher version, and one checksummed
+archive for every supported platform/architecture pair. URLs must be credential-free HTTPS. The launcher
+rejects missing native credentials, duplicate public IDs, mutable-only identities, incomplete host artifacts,
+and checksum mismatches. It never stores a header, token, or authenticated URL. Component-owned installers
+remain responsible for atomic activation, status, rollback, and uninstall.
