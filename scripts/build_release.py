@@ -16,7 +16,7 @@ FILES = (
     "LICENSE",
     "README.md",
     "components.json",
-    ".docs/release-and-components.md",
+    "docs/release-and-components.md",
     "scripts/install.py",
     "src/ctx9.py",
 )

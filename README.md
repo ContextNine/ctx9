@@ -23,7 +23,7 @@ The installed entrypoint prefers the fleet-managed Homebrew Python 3.12 runtime 
 ctx9 list
 ctx9 install codex-repo-sync
 ctx9 install codefoldersync
-ctx9 install ctx9-content
+ctx9 install publisher
 ctx9 update
 ctx9 doctor
 ```
@@ -33,8 +33,8 @@ ctx9 doctor
 Private components use a separate authenticated, value-free catalog overlay. The launcher accepts it only
 when invoked through the narrow `ctx9-gitlab-read` credential boundary, verifies an exact host archive and
 checksum, and leaves installation, rollback, and uninstall to the component. The public catalog never gains
-private repository metadata. See [the release contract](.docs/release-and-components.md).
+private repository metadata. See [the release contract](docs/release-and-components.md).
 
-The catalog currently includes [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), [CodeFolderSync](https://github.com/MDerman/codefoldersync), and the dependency-free [CTX9 Content CLI](https://github.com/MDerman/ctx9-content). Content is one command for documents, files, and evidence. Each component remains independently versioned and released.
+The catalog currently includes [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), [CodeFolderSync](https://github.com/MDerman/codefoldersync), and the dependency-free [Publisher CLI](https://github.com/MDerman/publisher). Publisher provides one `publish` command for documents, files, and evidence. Each component remains independently versioned and released.
 
-See [.docs/release-and-components.md](.docs/release-and-components.md) for the integrity and publication contract.
+See [`docs/release-and-components.md`](docs/release-and-components.md) for the integrity and publication contract.
