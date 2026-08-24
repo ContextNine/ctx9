@@ -23,6 +23,7 @@ The installed entrypoint prefers the fleet-managed Homebrew Python 3.12 runtime 
 ctx9 list
 ctx9 install codex-repo-sync
 ctx9 install codefoldersync
+ctx9 install ctx9-content
 ctx9 update
 ctx9 doctor
 ```
@@ -34,6 +35,6 @@ when invoked through the narrow `ctx9-gitlab-read` credential boundary, verifies
 checksum, and leaves installation, rollback, and uninstall to the component. The public catalog never gains
 private repository metadata. See [the release contract](.docs/release-and-components.md).
 
-The catalog currently includes [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), [CodeFolderSync](https://github.com/MDerman/codefoldersync), [File Upload](https://github.com/MDerman/file-upload), and the dependency-free [CTX9 Artifacts CLI](https://github.com/MDerman/ctx9-artifacts-cli). Each remains independently versioned and released.
+The catalog currently includes [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), [CodeFolderSync](https://github.com/MDerman/codefoldersync), and the dependency-free [CTX9 Content CLI](https://github.com/MDerman/ctx9-content). Content is one command for documents, files, and evidence. Each component remains independently versioned and released.
 
 See [.docs/release-and-components.md](.docs/release-and-components.md) for the integrity and publication contract.

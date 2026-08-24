@@ -44,46 +44,26 @@
       "documentation": "https://github.com/MDerman/codefoldersync#readme"
     },
     {
-      "id": "file-upload",
-      "name": "File Upload",
-      "version": "1.1.2",
+      "id": "ctx9-content",
+      "name": "CTX9 Content",
+      "version": "2.0.0",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
-        "repository": "MDerman/file-upload",
-        "tag": "v1.1.2",
-        "archive_url": "https://github.com/MDerman/file-upload/releases/download/v1.1.2/file-upload-1.1.2.tar.gz",
-        "archive_sha256": "8d9452c0ce56d7deebf6270e52ffddf7e0c595aa5c53b269c1c8d68335b1fb45",
-        "archive_root": "file-upload-1.1.2"
+        "repository": "MDerman/ctx9-content",
+        "tag": "v2.0.0",
+        "archive_url": "https://github.com/MDerman/ctx9-content/releases/download/v2.0.0/ctx9-content-2.0.0.tar.gz",
+        "archive_sha256": "11820fb6234e69e6bcc1520eab40ba18ba5939420ae3d371bdbdbc8ea9015e93",
+        "archive_root": "ctx9-content-2.0.0"
       },
       "installer": {
         "path": "scripts/install.py",
         "install_args": [],
-        "doctor_args": ["--verify"]
+        "doctor_args": ["--verify"],
+        "uninstall_args": ["--uninstall"]
       },
-      "provides": ["command:file-upload"],
-      "documentation": "https://github.com/MDerman/file-upload#readme"
-    },
-    {
-      "id": "ctx9-artifacts",
-      "name": "CTX9 Artifacts CLI",
-      "version": "1.0.1",
-      "platforms": ["linux", "macos"],
-      "architectures": ["aarch64", "x86_64"],
-      "release": {
-        "repository": "MDerman/ctx9-artifacts-cli",
-        "tag": "v1.0.1",
-        "archive_url": "https://github.com/MDerman/ctx9-artifacts-cli/releases/download/v1.0.1/ctx9-artifacts-1.0.1.tar.gz",
-        "archive_sha256": "8bbdb3ab30b70f71ebe32b609f0852b02ee673fd6b5807df1589205588ea9fcc",
-        "archive_root": "ctx9-artifacts-1.0.1"
-      },
-      "installer": {
-        "path": "scripts/install.py",
-        "install_args": [],
-        "doctor_args": ["--verify"]
-      },
-      "provides": ["command:ctx9-artifacts"],
-      "documentation": "https://github.com/MDerman/ctx9-artifacts-cli#readme"
+      "provides": ["command:ctx9-content"],
+      "documentation": "https://github.com/MDerman/ctx9-content#readme"
     }
   ]
 }
