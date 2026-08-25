@@ -50,10 +50,10 @@
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
-        "repository": "MDerman/publisher",
-        "tag": "v2.0.0",
-        "archive_url": "https://github.com/MDerman/publisher/releases/download/v2.0.0/publish-2.0.0.tar.gz",
-        "archive_sha256": "99c38ab541ea7cc4b0195a3a401eedcababef31058439b9b0fb9aeecca49b8b1",
+        "repository": "MDerman/ctx9",
+        "tag": "v0.2.2",
+        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.2.2/publish-2.0.0.tar.gz",
+        "archive_sha256": "66189f26543297f39b31d3603b5e48d6fad4c88f29e9052bc560247539df9d3b",
         "archive_root": "publish-2.0.0"
       },
       "installer": {
@@ -63,7 +63,7 @@
         "uninstall_args": ["--uninstall"]
       },
       "provides": ["command:publish"],
-      "documentation": "https://github.com/MDerman/publisher#readme"
+      "documentation": "https://github.com/MDerman/ctx9#components"
     }
   ]
 }

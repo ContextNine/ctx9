@@ -83,7 +83,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
     def test_list_and_version(self) -> None:
         version = self.run_cli("--version")
         self.assertEqual(version.returncode, 0, version.stderr)
-        self.assertEqual(version.stdout.strip(), "ctx9 0.2.1")
+        self.assertEqual(version.stdout.strip(), "ctx9 0.2.2")
         listed = self.run_cli("list", "--json")
         self.assertEqual(listed.returncode, 0, listed.stderr)
         self.assertEqual(json.loads(listed.stdout)[0]["id"], "codex-repo-sync")
@@ -148,7 +148,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                 env={**os.environ, "PATH": os.environ.get("PATH", "")},
             )
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            self.assertEqual(installed.stdout.strip(), "ctx9 0.2.1")
+            self.assertEqual(installed.stdout.strip(), "ctx9 0.2.2")
 
     def test_private_overlay_requires_narrow_binding_and_selects_exact_platform(self) -> None:
         private = {
