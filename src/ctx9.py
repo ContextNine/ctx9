@@ -19,7 +19,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-VERSION = "0.3.1"
+VERSION = "0.3.2"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 
