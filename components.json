@@ -25,7 +25,7 @@
     {
       "id": "codefoldersync",
       "name": "CodeFolderSync",
-      "version": "0.2.2",
+      "version": "0.2.1",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
@@ -68,7 +68,7 @@
     {
       "id": "fleet",
       "name": "Fleet",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
