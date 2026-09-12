@@ -19,7 +19,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 
@@ -398,11 +398,20 @@ def main(argv: list[str] | None = None) -> int:
         public_manifest = load_manifest(args.manifest)
         if bool(args.private_catalog_url) != bool(args.credential_binding):
             raise LauncherError("private catalog URL and credential binding must be provided together")
-        catalogs = (
-            [(args.private_catalog_url, args.credential_binding)]
-            if args.private_catalog_url
-            else configured_private_catalogs()
+        public_ids = {component["id"] for component in public_manifest["components"]}
+        needs_private_catalog = (
+            bool(args.private_catalog_url)
+            or args.command == "list"
+            or not getattr(args, "component", None)
+            or args.component not in public_ids
         )
+        catalogs = []
+        if needs_private_catalog:
+            catalogs = (
+                [(args.private_catalog_url, args.credential_binding)]
+                if args.private_catalog_url
+                else configured_private_catalogs()
+            )
         if catalogs and not (
             os.environ.get("CTX9_GITLAB_READ_USERNAME")
             and os.environ.get("CTX9_GITLAB_READ_TOKEN")

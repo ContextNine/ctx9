@@ -80,7 +80,7 @@
       },
       "installer": {
         "path": "_system/agents/_package/src/fleet.py",
-        "install_args": ["install", "--apply", "--discovery-aliases"],
+        "install_args": ["install", "--apply"],
         "doctor_args": ["verify"],
         "uninstall_args": ["uninstall", "--apply"]
       },
