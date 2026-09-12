@@ -68,15 +68,15 @@
     {
       "id": "fleet",
       "name": "Fleet",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "MDerman/ctx9",
-        "tag": "v0.3.3",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.3/fleet-0.2.2.tar.gz",
-        "archive_sha256": "0364d31f3aae4db9a59bd0c0ec47b2f99b855bf5e75d581f12914e63a01b3ca9",
-        "archive_root": "fleet-0.2.2"
+        "tag": "v0.3.5",
+        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.5/fleet-0.2.3.tar.gz",
+        "archive_sha256": "15ee7ac16f49d798482fc3bdad8845cbb817a74a388e64d88dfcd912ac3a45e7",
+        "archive_root": "fleet-0.2.3"
       },
       "installer": {
         "path": "_system/agents/_package/src/fleet.py",
