@@ -25,7 +25,7 @@
     {
       "id": "codefoldersync",
       "name": "CodeFolderSync",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
@@ -73,10 +73,10 @@
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "MDerman/ctx9",
-        "tag": "v0.3.2",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.2/fleet-0.2.1.tar.gz",
-        "archive_sha256": "6f28a0668d36bc4d72c9525526e60cd7f1bd9e0cce6b0e44cedbd207dd405e6e",
-        "archive_root": "fleet-0.2.1"
+        "tag": "v0.3.3",
+        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.3/fleet-0.2.2.tar.gz",
+        "archive_sha256": "0364d31f3aae4db9a59bd0c0ec47b2f99b855bf5e75d581f12914e63a01b3ca9",
+        "archive_root": "fleet-0.2.2"
       },
       "installer": {
         "path": "_system/agents/_package/src/fleet.py",
