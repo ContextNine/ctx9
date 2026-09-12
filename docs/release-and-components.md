@@ -30,14 +30,13 @@ When a public CLI is built from a private service repository, publish only its d
 ## Private catalog overlay
 
 Private products use a separate value-free catalog with `catalog_kind: private-overlay` and the exact
-`ctx9-gitlab-group-read` credential binding. The public catalog remains unchanged. Run the launcher as the
-credential helper's child so authentication exists only for catalog and artifact requests:
+`ctx9-gitlab-group-read` credential binding. The public catalog remains unchanged. Enrolled fleet machines
+discover the catalog from their exact dependency registry and expose the narrow credential only to `ctx9`:
 
 ```bash
-ctx9-gitlab-read exec -- ctx9 \
-  --private-catalog-url https://gitlab.com/api/v4/projects/PROJECT/packages/generic/CATALOG/VERSION/components.json \
-  --credential-binding ctx9-gitlab-group-read \
-  install PRODUCT
+ctx9 auth verify --json
+ctx9 list
+ctx9 install secret-bindings
 ```
 
 Each private release entry must name an exact source commit, minimum launcher version, and one checksummed

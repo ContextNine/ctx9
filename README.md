@@ -9,7 +9,7 @@ The launcher does not require the Context Vault, a CTX9 workspace checkout, or p
 Download the release archive and checksum from [GitHub Releases](https://github.com/MDerman/ctx9/releases), verify them, extract the archive, then run:
 
 ```bash
-python3 ctx9-0.2.2/scripts/install.py
+python3 ctx9-0.3.0/scripts/install.py
 ctx9 --version
 ctx9 list
 ```
@@ -24,17 +24,16 @@ ctx9 list
 ctx9 install codex-repo-sync
 ctx9 install codefoldersync
 ctx9 install publisher
+ctx9 install fleet
+ctx9 install vault
 ctx9 update
 ctx9 doctor
 ```
 
 `components.json` is the release catalog. Every component remains independently versioned and owns its installer and doctor. `ctx9 update` installs the exact component versions approved by the installed launcher catalog; updating the launcher provides a newer catalog.
 
-Private components use a separate authenticated, value-free catalog overlay. The launcher accepts it only
-when invoked through the narrow `ctx9-gitlab-read` credential boundary, verifies an exact host archive and
-checksum, and leaves installation, rollback, and uninstall to the component. The public catalog never gains
-private repository metadata. See [the release contract](docs/release-and-components.md).
+On an enrolled fleet machine, `ctx9 list` also discovers Secret Bindings from the exact private dependency registry. `ctx9 auth` keeps its read-only GitLab credential in an internal helper, and `ctx9 install secret-bindings` authenticates transparently. The public catalog never gains private repository metadata. See [the release contract](docs/release-and-components.md).
 
-The catalog currently includes [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), [CodeFolderSync](https://github.com/MDerman/codefoldersync), and the dependency-free [Publisher CLI](https://github.com/MDerman/publisher). Publisher provides one `publish` command for documents, files, and evidence. Each component remains independently versioned and released.
+The catalog includes Fleet, Context Vault, [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), [CodeFolderSync](https://github.com/MDerman/codefoldersync), and the dependency-free [Publisher CLI](https://github.com/MDerman/publisher). The commands have distinct jobs: `ctx9` manages components on one machine, `fleet` converges approved state across machines, and `vault` manages Vault content and upgrades.
 
 See [`docs/release-and-components.md`](docs/release-and-components.md) for the integrity and publication contract.

@@ -19,8 +19,9 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-VERSION = "0.2.2"
+VERSION = "0.3.0"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
+PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 
 
 class LauncherError(RuntimeError):
@@ -29,6 +30,16 @@ class LauncherError(RuntimeError):
 
 def default_manifest_path() -> Path:
     return Path(__file__).resolve().parent.parent / "components.json"
+
+
+def default_private_helper_path() -> Path:
+    override = os.environ.get("CTX9_PRIVATE_HELPER")
+    return Path(override).expanduser() if override else Path.home() / ".local/libexec/ctx9/private-read.py"
+
+
+def default_fleet_dependency_path() -> Path:
+    override = os.environ.get("CTX9_FLEET_DEPENDENCIES")
+    return Path(override).expanduser() if override else Path.home() / ".agents/package/_package/defaults/dependencies.json"
 
 
 def validate_component(component: dict[str, Any], *, private: bool) -> None:
@@ -111,7 +122,7 @@ def private_headers(binding: str) -> dict[str, str]:
     token = os.environ.get("CTX9_GITLAB_READ_TOKEN")
     if not username or not token:
         raise LauncherError(
-            "private catalog credential is unavailable; run through ctx9-gitlab-read exec"
+            "private catalog credential is unavailable; run ctx9 auth verify"
         )
     encoded = base64.b64encode(f"{username}:{token}".encode()).decode()
     return {"Authorization": f"Basic {encoded}"}
@@ -135,6 +146,70 @@ def load_private_manifest(url: str, binding: str) -> dict[str, Any]:
     except (OSError, urllib.error.URLError, json.JSONDecodeError) as error:
         raise LauncherError("private catalog retrieval failed") from error
     return validate_manifest(data, private=True)
+
+
+def configured_private_catalogs(path: Path | None = None) -> list[tuple[str, str]]:
+    registry = path or default_fleet_dependency_path()
+    if not registry.is_file():
+        return []
+    try:
+        data = json.loads(registry.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise LauncherError(f"cannot read fleet component configuration: {error}") from error
+    if not isinstance(data, dict):
+        raise LauncherError("unsupported fleet component configuration")
+    dependencies = data.get("dependencies")
+    if data.get("schema_version") != 2 or not isinstance(dependencies, list):
+        raise LauncherError("unsupported fleet component configuration")
+    catalogs: list[tuple[str, str]] = []
+    for dependency in dependencies:
+        contract = dependency.get("contract") if isinstance(dependency, dict) else None
+        recipes = contract.get("recipes") if isinstance(contract, dict) else None
+        if not isinstance(recipes, dict):
+            continue
+        for recipe in recipes.values():
+            if not isinstance(recipe, dict) or recipe.get("manager") != "ctx9-component":
+                continue
+            url = recipe.get("private_catalog_url")
+            binding = recipe.get("credential_binding")
+            if url is None and binding is None:
+                continue
+            if not isinstance(url, str) or binding != PRIVATE_CREDENTIAL_BINDING:
+                raise LauncherError("fleet private component configuration is invalid")
+            catalog = (url, binding)
+            if catalog not in catalogs:
+                catalogs.append(catalog)
+    return catalogs
+
+
+def run_private_helper(arguments: list[str], *, env: dict[str, str] | None = None) -> int:
+    helper = default_private_helper_path()
+    if not helper.is_file():
+        raise LauncherError(
+            "private component access is not enrolled; run the fleet onboarding workflow"
+        )
+    return subprocess.run(
+        [sys.executable, str(helper), *arguments],
+        check=False,
+        env=env,
+    ).returncode
+
+
+def reexec_with_private_auth(argv: list[str]) -> int:
+    if os.environ.get(PRIVATE_AUTH_GUARD) == "1":
+        raise LauncherError("private component access did not provide credentials")
+    environment = dict(os.environ)
+    environment[PRIVATE_AUTH_GUARD] = "1"
+    return run_private_helper(
+        [
+            "exec",
+            "--",
+            sys.executable,
+            str(Path(__file__).resolve()),
+            *argv,
+        ],
+        env=environment,
+    )
 
 
 def merge_manifests(public: dict[str, Any], private: dict[str, Any] | None) -> dict[str, Any]:
@@ -300,6 +375,9 @@ def parser() -> argparse.ArgumentParser:
     command_parser.add_argument("--private-catalog-url", help=argparse.SUPPRESS)
     command_parser.add_argument("--credential-binding", help=argparse.SUPPRESS)
     subcommands = command_parser.add_subparsers(dest="command", required=True)
+    auth_parser = subcommands.add_parser("auth", help="inspect or use private component access")
+    auth_parser.add_argument("action", choices=("status", "verify", "exec"))
+    auth_parser.add_argument("argv", nargs=argparse.REMAINDER)
     list_parser = subcommands.add_parser("list", help="list available components")
     list_parser.add_argument("--json", action="store_true")
     for name in ("install", "update", "doctor", "rollback", "uninstall"):
@@ -310,17 +388,29 @@ def parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = parser().parse_args(argv)
+    raw = list(sys.argv[1:] if argv is None else argv)
+    args = parser().parse_args(raw)
     try:
+        if args.command == "auth":
+            arguments = [args.action]
+            arguments.extend(args.argv[1:] if args.action == "exec" and args.argv[:1] == ["--"] else args.argv)
+            return run_private_helper(arguments)
         public_manifest = load_manifest(args.manifest)
         if bool(args.private_catalog_url) != bool(args.credential_binding):
             raise LauncherError("private catalog URL and credential binding must be provided together")
-        private_manifest = (
-            load_private_manifest(args.private_catalog_url, args.credential_binding)
+        catalogs = (
+            [(args.private_catalog_url, args.credential_binding)]
             if args.private_catalog_url
-            else None
+            else configured_private_catalogs()
         )
-        manifest = merge_manifests(public_manifest, private_manifest)
+        if catalogs and not (
+            os.environ.get("CTX9_GITLAB_READ_USERNAME")
+            and os.environ.get("CTX9_GITLAB_READ_TOKEN")
+        ):
+            return reexec_with_private_auth(raw)
+        manifest = public_manifest
+        for url, binding in catalogs:
+            manifest = merge_manifests(manifest, load_private_manifest(url, binding))
         if args.command == "list":
             result = [
                 {

@@ -23,11 +23,16 @@ SPEC.loader.exec_module(MODULE)
 
 class LauncherTests(unittest.TestCase):
     def run_cli(self, *args: str, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+        environment = {
+            **os.environ,
+            "CTX9_FLEET_DEPENDENCIES": "/nonexistent/ctx9-test-dependencies.json",
+            **(env or {}),
+        }
         return subprocess.run(
             [sys.executable, str(CLI), *args],
             text=True,
             capture_output=True,
-            env=env,
+            env=environment,
             check=False,
         )
 
@@ -83,10 +88,14 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
     def test_list_and_version(self) -> None:
         version = self.run_cli("--version")
         self.assertEqual(version.returncode, 0, version.stderr)
-        self.assertEqual(version.stdout.strip(), "ctx9 0.2.2")
+        self.assertEqual(version.stdout.strip(), "ctx9 0.3.0")
         listed = self.run_cli("list", "--json")
         self.assertEqual(listed.returncode, 0, listed.stderr)
-        self.assertEqual(json.loads(listed.stdout)[0]["id"], "codex-repo-sync")
+        component_ids = {component["id"] for component in json.loads(listed.stdout)}
+        self.assertEqual(
+            component_ids,
+            {"codex-repo-sync", "codefoldersync", "publisher", "fleet", "vault"},
+        )
 
     def test_component_install_update_and_doctor(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -148,7 +157,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                 env={**os.environ, "PATH": os.environ.get("PATH", "")},
             )
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            self.assertEqual(installed.stdout.strip(), "ctx9 0.2.2")
+            self.assertEqual(installed.stdout.strip(), "ctx9 0.3.0")
 
     def test_private_overlay_requires_narrow_binding_and_selects_exact_platform(self) -> None:
         private = {
@@ -213,6 +222,40 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                     "components": [],
                 },
                 private=True,
+            )
+
+    def test_fleet_registry_adds_private_components_without_duplicate_platform_catalogs(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            registry = Path(temporary) / "dependencies.json"
+            catalog = (
+                "https://gitlab.com/api/v4/projects/1/packages/generic/"
+                "secret-bindings-machine/1.2.4/components.json"
+            )
+            registry.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 2,
+                        "dependencies": [
+                            {
+                                "contract": {
+                                    "recipes": {
+                                        platform: {
+                                            "manager": "ctx9-component",
+                                            "private_catalog_url": catalog,
+                                            "credential_binding": "ctx9-gitlab-group-read",
+                                        }
+                                        for platform in ("macos", "linux")
+                                    }
+                                }
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                MODULE.configured_private_catalogs(registry),
+                [(catalog, "ctx9-gitlab-group-read")],
             )
 
 
