@@ -73,9 +73,9 @@
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "MDerman/ctx9",
-        "tag": "v0.3.11",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.11/fleet-0.2.12.tar.gz",
-        "archive_sha256": "1c211262759c540cbfe66890136de24fc3807e8fad49bea6920764b6ef045271",
+        "tag": "v0.3.12",
+        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.12/fleet-0.2.12.tar.gz",
+        "archive_sha256": "5b449ab45547808d5a53c4e6f7faf3fdfcb039d034be2879853a62ef990f1873",
         "archive_root": "fleet-0.2.12"
       },
       "installer": {
