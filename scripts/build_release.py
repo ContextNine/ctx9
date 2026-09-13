@@ -10,7 +10,7 @@ import io
 import tarfile
 from pathlib import Path
 
-VERSION = "0.3.10"
+VERSION = "0.3.11"
 FILES = (
     "AGENTS.md",
     "LICENSE",

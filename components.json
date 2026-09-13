@@ -68,18 +68,18 @@
     {
       "id": "fleet",
       "name": "Fleet",
-      "version": "0.2.8",
+      "version": "0.2.12",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "MDerman/ctx9",
-        "tag": "v0.3.10",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.10/fleet-0.2.8.tar.gz",
-        "archive_sha256": "be14ea1676e047a4ca0340bf69776598603926dbd648a6837d15bf4a18ed1378",
-        "archive_root": "fleet-0.2.8"
+        "tag": "v0.3.11",
+        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.11/fleet-0.2.12.tar.gz",
+        "archive_sha256": "1c211262759c540cbfe66890136de24fc3807e8fad49bea6920764b6ef045271",
+        "archive_root": "fleet-0.2.12"
       },
       "installer": {
-        "path": "_system/agents/_package/src/fleet.py",
+        "path": "internal/src/fleet.py",
         "install_args": ["install", "--apply"],
         "doctor_args": ["verify"],
         "uninstall_args": ["uninstall", "--apply"]
@@ -90,15 +90,15 @@
     {
       "id": "vault",
       "name": "Context Vault",
-      "version": "0.2.14",
+      "version": "0.2.16",
       "platforms": ["macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "MDerman/ctx9",
-        "tag": "v0.3.0",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.0/vault-0.2.14.tar.gz",
-        "archive_sha256": "0573c4fd5b6c57b1df520c361453252726b7e8698591bce70bf3a94e4398b325",
-        "archive_root": "vault-0.2.14"
+        "tag": "v0.3.11",
+        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.11/vault-0.2.16.tar.gz",
+        "archive_sha256": "1d6e9ad4b38628dae7b0fe751145f65ada39817604b654cea9a7384a3299455f",
+        "archive_root": "vault-0.2.16"
       },
       "installer": {
         "path": "_system/bootstrap/component_installer.py",
