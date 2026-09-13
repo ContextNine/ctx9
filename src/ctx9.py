@@ -19,7 +19,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any
 
-VERSION = "0.3.12"
+VERSION = "0.3.13"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 
@@ -377,6 +377,7 @@ def parser() -> argparse.ArgumentParser:
     subcommands = command_parser.add_subparsers(dest="command", required=True)
     auth_parser = subcommands.add_parser("auth", help="inspect or use private component access")
     auth_parser.add_argument("action", choices=("status", "verify"))
+    auth_parser.add_argument("--json", action="store_true")
     list_parser = subcommands.add_parser("list", help="list available components")
     list_parser.add_argument("--json", action="store_true")
     for name in ("install", "update", "doctor", "rollback", "uninstall"):
@@ -391,7 +392,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(raw)
     try:
         if args.command == "auth":
-            return run_private_helper([args.action])
+            return run_private_helper([args.action, *(["--json"] if args.json else [])])
         public_manifest = load_manifest(args.manifest)
         if bool(args.private_catalog_url) != bool(args.credential_binding):
             raise LauncherError("private catalog URL and credential binding must be provided together")
