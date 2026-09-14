@@ -1,6 +1,6 @@
 # Publisher CLI lifecycle
 
-Launcher installs one `publish` command from the Publisher repository's reproducible `v2.0.0` archive. The catalog pins its URL and SHA-256. Publisher owns login, doctor, API behavior, installation, verification, and uninstall.
+Launcher installs one `publish` command from the Publisher repository's reproducible `v3.1.0` archive. The catalog pins its URL and SHA-256. Publisher owns credential custody, doctor, API behavior, installation, verification, and uninstall.
 
 Acceptance is:
 

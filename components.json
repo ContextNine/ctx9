@@ -46,15 +46,15 @@
     {
       "id": "publisher",
       "name": "Publisher",
-      "version": "2.0.0",
+      "version": "3.1.0",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "MDerman/ctx9",
-        "tag": "v0.2.2",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.2.2/publish-2.0.0.tar.gz",
-        "archive_sha256": "66189f26543297f39b31d3603b5e48d6fad4c88f29e9052bc560247539df9d3b",
-        "archive_root": "publish-2.0.0"
+        "tag": "v0.3.15",
+        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.15/publish-3.1.0.tar.gz",
+        "archive_sha256": "32c0ae98b0d1a293193a0c68189b9fe329ada4a0db02aaeb860f291c43f6f971",
+        "archive_root": "publish-3.1.0"
       },
       "installer": {
         "path": "scripts/install.py",
