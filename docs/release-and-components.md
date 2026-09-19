@@ -27,6 +27,8 @@ The catalog may not reference private repositories, workspace paths, credentials
 
 When a public CLI is built from a private service repository, publish only its deterministic, source-stamped archive and checksum as assets on the public launcher release. The catalog points to that public asset and the component installer verifies its embedded source commit; the private service source and release credentials remain private.
 
+Testimonials follows this boundary. Its public `testimonials-<version>.tar.gz` contains only the bundled CLI, native credential helper, installer, public README and exact source commit marker. The service source, environment contracts and production configuration are excluded.
+
 ## Private catalog overlay
 
 Private products use a separate value-free catalog with `catalog_kind: private-overlay` and the exact

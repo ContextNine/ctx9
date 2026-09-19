@@ -66,6 +66,28 @@
       "documentation": "https://github.com/MDerman/ctx9#components"
     },
     {
+      "id": "testimonials",
+      "name": "Testimonials",
+      "version": "0.1.0",
+      "platforms": ["linux", "macos"],
+      "architectures": ["aarch64", "x86_64"],
+      "release": {
+        "repository": "MDerman/ctx9",
+        "tag": "v0.3.18",
+        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.18/testimonials-0.1.0.tar.gz",
+        "archive_sha256": "3d629989d86859a6f5124d264ba7b5e03de7bffbed7b96d614423e357cb28eb0",
+        "archive_root": "testimonials-0.1.0"
+      },
+      "installer": {
+        "path": "scripts/install.py",
+        "install_args": [],
+        "doctor_args": ["--verify"],
+        "uninstall_args": ["--uninstall"]
+      },
+      "provides": ["command:testimonials"],
+      "documentation": "https://testimonials.ctx9.com"
+    },
+    {
       "id": "fleet",
       "name": "Fleet",
       "version": "0.2.12",

@@ -88,13 +88,20 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
     def test_list_and_version(self) -> None:
         version = self.run_cli("--version")
         self.assertEqual(version.returncode, 0, version.stderr)
-        self.assertEqual(version.stdout.strip(), "ctx9 0.3.17")
+        self.assertEqual(version.stdout.strip(), "ctx9 0.3.18")
         listed = self.run_cli("list", "--json")
         self.assertEqual(listed.returncode, 0, listed.stderr)
         component_ids = {component["id"] for component in json.loads(listed.stdout)}
         self.assertEqual(
             component_ids,
-            {"codex-repo-sync", "codefoldersync", "publisher", "fleet", "vault"},
+            {
+                "codex-repo-sync",
+                "codefoldersync",
+                "publisher",
+                "testimonials",
+                "fleet",
+                "vault",
+            },
         )
 
     def test_private_auth_exec_is_not_a_public_command(self) -> None:
@@ -166,7 +173,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                 env={**os.environ, "PATH": os.environ.get("PATH", "")},
             )
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            self.assertEqual(installed.stdout.strip(), "ctx9 0.3.17")
+            self.assertEqual(installed.stdout.strip(), "ctx9 0.3.18")
 
     def test_public_component_operation_does_not_require_private_auth(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
