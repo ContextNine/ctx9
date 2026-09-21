@@ -26,6 +26,11 @@ class ComponentAssetTests(unittest.TestCase):
             subprocess.run(["git", "-C", source, "config", "user.email", "test@example.com"], check=True)
             (source / "AGENTS.md").write_text("instructions\n", encoding="utf-8")
             (source / "CLAUDE.md").symlink_to("AGENTS.md")
+            skills = source / ".agents" / "skills" / "example"
+            skills.mkdir(parents=True)
+            (skills / "SKILL.md").write_text("skill\n", encoding="utf-8")
+            (source / ".claude").mkdir()
+            (source / ".claude" / "skills").symlink_to("../.agents/skills")
             subprocess.run(["git", "-C", source, "add", "-A"], check=True)
             subprocess.run(["git", "-C", source, "commit", "-qm", "fixture"], check=True)
             first = root / "first.tar.gz"
@@ -37,6 +42,11 @@ class ComponentAssetTests(unittest.TestCase):
                 linked = archive.getmember("component-1.0.0/CLAUDE.md")
                 self.assertTrue(linked.isfile())
                 self.assertEqual(archive.extractfile(linked).read(), b"instructions\n")
+                directory_link = archive.getmember(
+                    "component-1.0.0/.claude/skills/example/SKILL.md"
+                )
+                self.assertTrue(directory_link.isfile())
+                self.assertEqual(archive.extractfile(directory_link).read(), b"skill\n")
 
 
 if __name__ == "__main__":

@@ -112,15 +112,15 @@
     {
       "id": "vault",
       "name": "Context Vault",
-      "version": "0.2.16",
+      "version": "0.3.1",
       "platforms": ["macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "ContextNine/ctx9",
-        "tag": "v0.3.11",
-        "archive_url": "https://github.com/ContextNine/ctx9/releases/download/v0.3.11/vault-0.2.16.tar.gz",
-        "archive_sha256": "1d6e9ad4b38628dae7b0fe751145f65ada39817604b654cea9a7384a3299455f",
-        "archive_root": "vault-0.2.16"
+        "tag": "v0.3.19",
+        "archive_url": "https://github.com/ContextNine/ctx9/releases/download/v0.3.19/vault-0.3.1.tar.gz",
+        "archive_sha256": "826c686df038845e5f19f54fb1b91403efd877c609d42673e11c3c47cb6b7f44",
+        "archive_root": "vault-0.3.1"
       },
       "installer": {
         "path": "_system/bootstrap/component_installer.py",

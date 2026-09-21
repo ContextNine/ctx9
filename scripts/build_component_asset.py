@@ -47,24 +47,61 @@ def normalized_link(path: str, target: str) -> str:
     return PurePosixPath(*parts).as_posix()
 
 
-def blob(source: Path, ref: str, path: str, mode: str, modes: dict[str, str]) -> tuple[bytes, int]:
+def blob(
+    source: Path,
+    ref: str,
+    path: str,
+    mode: str,
+    modes: dict[str, str],
+    seen: frozenset[str] = frozenset(),
+) -> tuple[bytes, int]:
     contents = git(source, "show", f"{ref}:{path}")
     if mode != "120000":
         return contents, 0o755 if mode == "100755" else 0o644
+    if path in seen:
+        raise RuntimeError(f"archive link cycle is not allowed: {path}")
     target = normalized_link(path, contents.decode().strip())
     target_mode = modes.get(target)
     if target_mode is None or target_mode == "120000":
         raise RuntimeError(f"archive link target must be one regular tracked file: {path}")
-    return git(source, "show", f"{ref}:{target}"), 0o755 if target_mode == "100755" else 0o644
+    return blob(source, ref, target, target_mode, modes, seen | {path})
+
+
+def materialized_entries(
+    source: Path, ref: str, tracked: list[tuple[str, str, str]]
+) -> list[tuple[str, bytes, int]]:
+    modes = {path: mode for mode, _kind, path in tracked}
+    result: list[tuple[str, bytes, int]] = []
+    for mode, _kind, path in tracked:
+        if mode != "120000":
+            contents, permissions = blob(source, ref, path, mode, modes)
+            result.append((path, contents, permissions))
+            continue
+        target = normalized_link(path, git(source, "show", f"{ref}:{path}").decode().strip())
+        if target in modes:
+            contents, permissions = blob(source, ref, path, mode, modes)
+            result.append((path, contents, permissions))
+            continue
+        prefix = f"{target}/"
+        descendants = [
+            (target_mode, target_path)
+            for target_mode, _target_kind, target_path in tracked
+            if target_path.startswith(prefix)
+        ]
+        if not descendants:
+            raise RuntimeError(f"archive link target is not tracked: {path}")
+        for target_mode, target_path in descendants:
+            suffix = target_path.removeprefix(prefix)
+            contents, permissions = blob(source, ref, target_path, target_mode, modes)
+            result.append((f"{path}/{suffix}", contents, permissions))
+    return result
 
 
 def build(source: Path, ref: str, root_name: str, output: Path) -> str:
     tracked = entries(source, ref)
-    modes = {path: mode for mode, _kind, path in tracked}
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w", format=tarfile.PAX_FORMAT) as archive:
-        for mode, _kind, path in tracked:
-            contents, permissions = blob(source, ref, path, mode, modes)
+        for path, contents, permissions in materialized_entries(source, ref, tracked):
             info = tarfile.TarInfo(f"{root_name}/{path}")
             info.size = len(contents)
             info.mode = permissions
