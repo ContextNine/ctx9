@@ -91,15 +91,15 @@
     {
       "id": "fleet",
       "name": "Fleet",
-      "version": "0.2.15",
+      "version": "0.2.16",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "ContextNine/ctx9",
-        "tag": "v0.3.23",
-        "archive_url": "https://github.com/ContextNine/ctx9/releases/download/v0.3.23/fleet-0.2.15.tar.gz",
-        "archive_sha256": "e4f6a983bfd8d0a41c49e2141d351544ec5927ed5b1b493e8b5c6ecd5bb05808",
-        "archive_root": "fleet-0.2.15"
+        "tag": "v0.3.24",
+        "archive_url": "https://github.com/ContextNine/ctx9/releases/download/v0.3.24/fleet-0.2.16.tar.gz",
+        "archive_sha256": "596d38a2e3e20a2b5821a4fe26894c91ee970646e279fd29b92d6c2b17fef2b0",
+        "archive_root": "fleet-0.2.16"
       },
       "installer": {
         "path": "internal/src/fleet.py",
