@@ -6,7 +6,7 @@ The launcher does not require the Context Vault, a CTX9 workspace checkout, or p
 
 ## Install
 
-Download the release archive and checksum from [GitHub Releases](https://github.com/MDerman/ctx9/releases), verify them, extract the archive, then run:
+Download the release archive and checksum from [GitHub Releases](https://github.com/ContextNine/ctx9/releases), verify them, extract the archive, then run:
 
 ```bash
 python3 ctx9-0.3.18/scripts/install.py
@@ -35,6 +35,6 @@ ctx9 doctor
 
 On an enrolled fleet machine, `ctx9 list` also discovers Secret Bindings from the exact private dependency registry. `ctx9 auth` keeps its read-only GitLab credential in an internal helper, and `ctx9 install secret-bindings` authenticates transparently. The public catalog never gains private repository metadata. See [the release contract](docs/release-and-components.md).
 
-The catalog includes Fleet, Context Vault, [Codex Repo Sync](https://github.com/MDerman/codex-repo-sync), [CodeFolderSync](https://github.com/MDerman/codefoldersync), the dependency-free [Publisher CLI](https://github.com/MDerman/publisher), and the source-stamped Testimonials management CLI. The commands have distinct jobs: `ctx9` manages components on one machine, `fleet` converges approved state across machines, and `vault` manages Vault content and upgrades.
+The catalog includes Fleet, Context Vault, [Codex Repo Sync](https://github.com/ContextNine/codex-repo-sync), [CodeFolderSync](https://github.com/ContextNine/codefoldersync), the dependency-free [Publisher CLI](https://github.com/ContextNine/publisher), and the source-stamped Testimonials management CLI. The commands have distinct jobs: `ctx9` manages components on one machine, `fleet` converges approved state across machines, and `vault` manages Vault content and upgrades.
 
 See [`docs/release-and-components.md`](docs/release-and-components.md) for the integrity and publication contract.

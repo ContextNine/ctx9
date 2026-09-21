@@ -8,19 +8,19 @@
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
-        "repository": "MDerman/codex-repo-sync",
+        "repository": "ContextNine/codex-repo-sync",
         "tag": "v0.1.1",
-        "archive_url": "https://github.com/MDerman/codex-repo-sync/releases/download/v0.1.1/codex-repo-sync-0.1.1.tar.gz",
+        "archive_url": "https://github.com/ContextNine/codex-repo-sync/releases/download/v0.1.1/codex-repo-sync-0.1.1.tar.gz",
         "archive_sha256": "47b2411888e61ebc9f6d999b9ee6e854caa5221b7692e650d674412842132586",
         "archive_root": "codex-repo-sync-0.1.1"
       },
       "installer": {
         "path": "scripts/install.py",
-        "install_args": ["--marketplace-source", "MDerman/codex-repo-sync", "--ref", "v0.1.1"],
-        "doctor_args": ["--marketplace-source", "MDerman/codex-repo-sync", "--ref", "v0.1.1", "--verify"]
+        "install_args": ["--marketplace-source", "ContextNine/codex-repo-sync", "--ref", "v0.1.1"],
+        "doctor_args": ["--marketplace-source", "ContextNine/codex-repo-sync", "--ref", "v0.1.1", "--verify"]
       },
       "provides": ["codex-plugin:ctx9/codex-repo-sync"],
-      "documentation": "https://github.com/MDerman/codex-repo-sync#readme"
+      "documentation": "https://github.com/ContextNine/codex-repo-sync#readme"
     },
     {
       "id": "codefoldersync",
@@ -29,9 +29,9 @@
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
-        "repository": "MDerman/codefoldersync",
+        "repository": "ContextNine/codefoldersync",
         "tag": "v0.2.1",
-        "archive_url": "https://github.com/MDerman/codefoldersync/releases/download/v0.2.1/codefoldersync-0.2.1.tar.gz",
+        "archive_url": "https://github.com/ContextNine/codefoldersync/releases/download/v0.2.1/codefoldersync-0.2.1.tar.gz",
         "archive_sha256": "cc821e9f8ed1b106b178ee02ab1a1f19237e04c7ce3597cd71575f83ae067418",
         "archive_root": "codefoldersync-0.2.1"
       },
@@ -41,7 +41,7 @@
         "doctor_args": ["--verify"]
       },
       "provides": ["command:codefoldersync"],
-      "documentation": "https://github.com/MDerman/codefoldersync#readme"
+      "documentation": "https://github.com/ContextNine/codefoldersync#readme"
     },
     {
       "id": "publisher",
@@ -50,9 +50,9 @@
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
-        "repository": "MDerman/ctx9",
+        "repository": "ContextNine/ctx9",
         "tag": "v0.3.17",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.17/publish-3.1.2.tar.gz",
+        "archive_url": "https://github.com/ContextNine/ctx9/releases/download/v0.3.17/publish-3.1.2.tar.gz",
         "archive_sha256": "78664dbb633f6704535accf575b784b074037bcebdc33e02abf783262e766a81",
         "archive_root": "publish-3.1.2"
       },
@@ -63,7 +63,7 @@
         "uninstall_args": ["--uninstall"]
       },
       "provides": ["command:publish"],
-      "documentation": "https://github.com/MDerman/ctx9#components"
+      "documentation": "https://github.com/ContextNine/ctx9#components"
     },
     {
       "id": "testimonials",
@@ -72,9 +72,9 @@
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
-        "repository": "MDerman/ctx9",
+        "repository": "ContextNine/ctx9",
         "tag": "v0.3.18",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.18/testimonials-0.1.0.tar.gz",
+        "archive_url": "https://github.com/ContextNine/ctx9/releases/download/v0.3.18/testimonials-0.1.0.tar.gz",
         "archive_sha256": "3d629989d86859a6f5124d264ba7b5e03de7bffbed7b96d614423e357cb28eb0",
         "archive_root": "testimonials-0.1.0"
       },
@@ -94,9 +94,9 @@
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
-        "repository": "MDerman/ctx9",
+        "repository": "ContextNine/ctx9",
         "tag": "v0.3.12",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.12/fleet-0.2.12.tar.gz",
+        "archive_url": "https://github.com/ContextNine/ctx9/releases/download/v0.3.12/fleet-0.2.12.tar.gz",
         "archive_sha256": "5b449ab45547808d5a53c4e6f7faf3fdfcb039d034be2879853a62ef990f1873",
         "archive_root": "fleet-0.2.12"
       },
@@ -107,7 +107,7 @@
         "uninstall_args": ["uninstall", "--apply"]
       },
       "provides": ["command:fleet"],
-      "documentation": "https://github.com/MDerman/ctx9#components"
+      "documentation": "https://github.com/ContextNine/ctx9#components"
     },
     {
       "id": "vault",
@@ -116,9 +116,9 @@
       "platforms": ["macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
-        "repository": "MDerman/ctx9",
+        "repository": "ContextNine/ctx9",
         "tag": "v0.3.11",
-        "archive_url": "https://github.com/MDerman/ctx9/releases/download/v0.3.11/vault-0.2.16.tar.gz",
+        "archive_url": "https://github.com/ContextNine/ctx9/releases/download/v0.3.11/vault-0.2.16.tar.gz",
         "archive_sha256": "1d6e9ad4b38628dae7b0fe751145f65ada39817604b654cea9a7384a3299455f",
         "archive_root": "vault-0.2.16"
       },
@@ -128,7 +128,7 @@
         "doctor_args": ["--verify"]
       },
       "provides": ["command:vault"],
-      "documentation": "https://github.com/MDerman/the-context-vault-template#readme"
+      "documentation": "https://github.com/ContextNine/the-context-vault-template#readme"
     }
   ]
 }
