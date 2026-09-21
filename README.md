@@ -9,7 +9,7 @@ The launcher does not require the Context Vault, a CTX9 workspace checkout, or p
 Download the release archive and checksum from [GitHub Releases](https://github.com/ContextNine/ctx9/releases), verify them, extract the archive, then run:
 
 ```bash
-python3 ctx9-0.3.22/scripts/install.py
+python3 ctx9-0.3.23/scripts/install.py
 ctx9 --version
 ctx9 list
 ```
