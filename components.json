@@ -4,20 +4,21 @@
     {
       "id": "codex-repo-sync",
       "name": "Codex Repo Sync",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "ContextNine/codex-repo-sync",
-        "tag": "v0.1.1",
-        "archive_url": "https://github.com/ContextNine/codex-repo-sync/releases/download/v0.1.1/codex-repo-sync-0.1.1.tar.gz",
-        "archive_sha256": "47b2411888e61ebc9f6d999b9ee6e854caa5221b7692e650d674412842132586",
-        "archive_root": "codex-repo-sync-0.1.1"
+        "tag": "v0.1.2",
+        "archive_url": "https://github.com/ContextNine/codex-repo-sync/releases/download/v0.1.2/codex-repo-sync-0.1.2.tar.gz",
+        "archive_sha256": "e8330d44f9ddc10a432355325d887f418a09c5af7e0441712a00ffbee05cdffa",
+        "archive_root": "codex-repo-sync-0.1.2"
       },
       "installer": {
         "path": "scripts/install.py",
-        "install_args": ["--marketplace-source", "ContextNine/codex-repo-sync", "--ref", "v0.1.1"],
-        "doctor_args": ["--marketplace-source", "ContextNine/codex-repo-sync", "--ref", "v0.1.1", "--verify"]
+        "install_args": ["--marketplace-source", "ContextNine/codex-repo-sync", "--ref", "v0.1.2"],
+        "doctor_args": ["--marketplace-source", "ContextNine/codex-repo-sync", "--ref", "v0.1.2", "--verify"],
+        "uninstall_args": ["--uninstall"]
       },
       "provides": ["codex-plugin:ctx9/codex-repo-sync"],
       "documentation": "https://github.com/ContextNine/codex-repo-sync#readme"

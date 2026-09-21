@@ -13,7 +13,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-VERSION = "0.3.19"
+VERSION = "0.3.20"
 
 
 def source_root() -> Path:
