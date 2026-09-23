@@ -18,7 +18,7 @@ The launcher verifies host eligibility and archive integrity before extracting. 
 Before adding or updating a catalog entry:
 
 1. publish the component from clean `master` with focused tests and release automation passing;
-2. verify its release archive and checksum;
+2. verify its release archive, checksum, source-commit release record, and GitHub attestation;
 3. prove fresh installation, doctor, and second-run no-op on every claimed operating system;
 4. update the pinned component entry and launcher tests;
 5. publish a new launcher release and repeat fresh launcher acceptance.

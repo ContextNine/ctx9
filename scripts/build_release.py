@@ -7,6 +7,8 @@ import argparse
 import gzip
 import hashlib
 import io
+import json
+import subprocess
 import tarfile
 from pathlib import Path
 
@@ -27,6 +29,11 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, default=Path("dist"))
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
+    source_commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True
+    ).stdout.strip()
+    if len(source_commit) != 40:
+        raise SystemExit("source commit must be a full SHA")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     archive_path = args.output_dir / f"ctx9-{VERSION}.tar.gz"
     buffer = io.BytesIO()
@@ -45,8 +52,25 @@ def main() -> int:
     digest = hashlib.sha256(archive_path.read_bytes()).hexdigest()
     checksum = archive_path.with_suffix(archive_path.suffix + ".sha256")
     checksum.write_text(f"{digest}  {archive_path.name}\n", encoding="utf-8")
+    release = archive_path.with_suffix(archive_path.suffix + ".release.json")
+    release.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "component": "ctx9",
+                "version": VERSION,
+                "source_commit": source_commit,
+                "artifact": {"name": archive_path.name, "sha256": digest},
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     print(archive_path)
     print(checksum)
+    print(release)
     return 0
 
 
