@@ -2,6 +2,7 @@
 
 This repository owns the public `ctx9` component launcher and its signed-off component catalog.
 
+- Always work on master unless instructed not to.
 - Keep the launcher thin. Components own their installers, doctors, release cadence, and runtime behavior.
 - Use only Python's standard library so a fresh macOS or Linux machine can run the release installer.
 - Pin every component artifact by exact version, URL, and SHA-256 in `components.json`.
