@@ -208,7 +208,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                             {
                                 "platform": "macos",
                                 "architecture": "aarch64",
-                                "archive_url": "https://gitlab.com/example/private.tar.gz",
+                                "archive_url": "https://gitlab.com/api/v4/projects/1/packages/generic/private/1.0.0/private.tar.gz",
                                 "archive_sha256": "1" * 64,
                                 "archive_root": "fixture-1.0.0",
                             }

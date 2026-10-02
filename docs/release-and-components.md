@@ -42,7 +42,44 @@ ctx9 install secret-bindings
 ```
 
 Each private release entry must name an exact source commit, minimum launcher version, and one checksummed
-archive for every supported platform/architecture pair. URLs must be credential-free HTTPS. The launcher
+archive for every supported platform/architecture pair. Private URLs must be exact credential-free GitLab
+Generic Package HTTPS URLs. Redirects and query strings are rejected before credential forwarding. The launcher
 rejects missing native credentials, duplicate public IDs, mutable-only identities, incomplete host artifacts,
 and checksum mismatches. It never stores a header, token, or authenticated URL. Component-owned installers
 remain responsible for atomic activation, status, rollback, and uninstall.
+
+### Authenticated release preflight
+
+The source implementation adds `ctx9 preflight <component> --json`. It is not in the released 0.3.24 archive.
+Publish and accept a new launcher release before enrolling Fleet in this command. Do not replace an installed
+launcher with this checkout or assume the source version string proves the capability is installed.
+
+Private recipes must pin `provenance_project`, such as the component's GitLab namespace/project, alongside
+the exact catalog URL, `ctx9-gitlab-group-read` binding and `verify.exact` semantic version. The launcher
+derives the exact `.gitlab-ci.yml@refs/tags/v<version>` certificate identity from this local policy, with
+`https://gitlab.com` as issuer. It never trusts a signer selected by the downloaded catalog. Fleet passes
+the same policy explicitly to preflight and installation.
+
+The launcher delegates cryptography to an enrolled `cosign` executable using
+[`verify-blob`, exact certificate identity and issuer](https://docs.sigstore.dev/cosign/verifying/verify/).
+The launcher itself still uses only Python's standard library. Cosign installation/version acceptance is a
+separate dependency gate, not an automatic download or a cryptographic implementation inside the launcher.
+No verifier means `verifier-unavailable`, never a checksum-only fallback. The verifier child does not receive
+private-read or management credentials, and its raw output is not printed.
+
+Preflight reads the exact catalog, signed release JSON and bundle. It verifies the bundle, the complete
+catalog's equality to the signed catalog, source/version/product identity, host eligibility and the signed
+platform/archive digest set. It does not install or run a component. `archive_verified: false` is deliberate:
+archive bytes are downloaded and checksum-verified immediately before extraction and installer execution.
+Installation, doctor, rollback and uninstall all repeat the trust check before running release-owned code.
+Private installer output is reduced to readiness/change booleans rather than forwarding arbitrary output.
+
+Closed failure states distinguish missing/locked/expired native access, rejected credentials, denied access,
+missing release, rate limiting, transport failure, incompatible host, invalid release, missing local trust
+policy, missing verifier and rejected trust. A 401 proves rejected credentials, not whether they were revoked
+or mistyped. Do not rotate based on that status alone. Metadata reads and verifier execution are bounded;
+no provider response body, traceback, header or key is included in the report.
+
+Acceptance must use the real signed release and real accepted Cosign on both supported OS families. The
+synthetic integration fixture proves orchestration, matching and fail-closed behavior, not cryptography or
+live credential custody. Until that acceptance, do not claim the new installation workflow is shipped.
