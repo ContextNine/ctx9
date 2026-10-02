@@ -29,7 +29,7 @@ PREFLIGHT_STATES = {
     "ready", "credential-missing", "credential-locked", "credential-unavailable",
     "credential-expired", "credential-rejected", "access-denied", "release-unavailable",
     "rate-limited", "transport-unavailable", "invalid-release", "platform-incompatible",
-    "launcher-upgrade-required", "trust-policy-missing", "verifier-unavailable", "trust-rejected",
+    "launcher-upgrade-required", "trust-policy-missing", "verifier-unavailable", "trust-rejected", "release-changed",
 }
 
 
@@ -261,7 +261,8 @@ def verify_private_release(component: dict[str, Any], manifest: dict[str, Any], 
         raise PreflightError("invalid-release") from None
     if not valid:
         raise PreflightError("trust-rejected")
-    return {"schema_version": 1, "state": "ready", "ready": True, "component": component["id"], "version": version, "source_commit": component["release"]["source_commit"], "platform": operating_system, "architecture": architecture, "trust_verified": True, "archive_verified": False, "values_returned": False}
+    catalog_sha256 = hashlib.sha256(json.dumps(catalog, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return {"schema_version": 1, "state": "ready", "ready": True, "component": component["id"], "version": version, "source_commit": component["release"]["source_commit"], "catalog_sha256": catalog_sha256, "platform": operating_system, "architecture": architecture, "trust_verified": True, "archive_verified": False, "values_returned": False}
 
 
 def preflight_failure(state: str) -> dict[str, Any]:
@@ -289,10 +290,10 @@ def private_auth_preflight(raw: list[str]) -> int:
             raise ValueError
         # Reconstruct the allowed result rather than forwarding any child output.
         if result.returncode == 0 and report.get("ready") is True and report.get("trust_verified") is True:
-            fields = ("component", "version", "source_commit", "platform", "architecture")
+            fields = ("component", "version", "source_commit", "catalog_sha256", "platform", "architecture")
             if not all(isinstance(report.get(key), str) for key in fields):
                 raise ValueError
-            if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", report["component"]) or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", report["version"]) or not is_hex(report["source_commit"], 40) or report["platform"] not in {"macos", "linux"} or report["architecture"] not in {"aarch64", "x86_64"}:
+            if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", report["component"]) or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", report["version"]) or not is_hex(report["source_commit"], 40) or not is_hex(report["catalog_sha256"], 64) or report["platform"] not in {"macos", "linux"} or report["architecture"] not in {"aarch64", "x86_64"}:
                 raise ValueError
             emit({**preflight_failure("ready"), **{key: report[key] for key in fields}, "ready": True, "trust_verified": True, "archive_verified": False}, True)
             return 0
@@ -559,6 +560,8 @@ def parser() -> argparse.ArgumentParser:
     command_parser.add_argument("--credential-binding", help=argparse.SUPPRESS)
     command_parser.add_argument("--provenance-project", help=argparse.SUPPRESS)
     command_parser.add_argument("--expected-version", help=argparse.SUPPRESS)
+    command_parser.add_argument("--expected-source-commit", help=argparse.SUPPRESS)
+    command_parser.add_argument("--expected-catalog-sha256", help=argparse.SUPPRESS)
     subcommands = command_parser.add_subparsers(dest="command", required=True)
     auth_parser = subcommands.add_parser("auth", help="inspect or use private component access")
     auth_parser.add_argument("action", choices=("status", "verify"))
@@ -579,6 +582,10 @@ def main(argv: list[str] | None = None) -> int:
     raw = list(sys.argv[1:] if argv is None else argv)
     args = parser().parse_args(raw)
     try:
+        if args.expected_source_commit is not None and not re.fullmatch(r"[a-f0-9]{40}", args.expected_source_commit):
+            raise PreflightError("invalid-release")
+        if args.expected_catalog_sha256 is not None and not re.fullmatch(r"[a-f0-9]{64}", args.expected_catalog_sha256):
+            raise PreflightError("invalid-release")
         if args.command == "auth":
             return run_private_helper([args.action, *(["--json"] if args.json else [])])
         public_manifest = load_manifest(args.manifest)
@@ -632,6 +639,8 @@ def main(argv: list[str] | None = None) -> int:
             if args.component
             else manifest["components"]
         )
+        if (args.expected_source_commit is not None or args.expected_catalog_sha256 is not None) and (len(selected) != 1 or selected[0].get("_private") is not True):
+            raise PreflightError("invalid-release")
         trust_reports = []
         for component in selected:
             if component.get("_private") is not True:
@@ -643,7 +652,12 @@ def main(argv: list[str] | None = None) -> int:
             project = args.provenance_project or project
             version = args.expected_version or version
             identity = private_release_policy(url, project, version)
-            trust_reports.append(verify_private_release(component, private_manifest, url, identity, version))
+            report = verify_private_release(component, private_manifest, url, identity, version)
+            if args.expected_source_commit is not None and report["source_commit"] != args.expected_source_commit:
+                raise PreflightError("release-changed")
+            if args.expected_catalog_sha256 is not None and report["catalog_sha256"] != args.expected_catalog_sha256:
+                raise PreflightError("release-changed")
+            trust_reports.append(report)
         if args.command == "preflight":
             emit(trust_reports[0], True)
             return 0

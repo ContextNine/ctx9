@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import unittest
 import urllib.error
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, redirect_stderr
 from pathlib import Path
 from unittest import mock
 
@@ -80,6 +80,7 @@ class PrivateReleaseJourney(unittest.TestCase):
                 self.assertTrue(report["trust_verified"])
                 self.assertFalse(report["archive_verified"])
                 self.assertEqual(report["source_commit"], "a" * 40)
+                catalog_digest = report["catalog_sha256"]
                 with mock.patch.object(MODULE, "download", side_effect=lambda url, destination, **kwargs: destination.write_bytes(Path(archive["archive_url"].removeprefix("file://")).read_bytes())):
                     code, report = invoke("install")
                     self.assertEqual(code, 0)
@@ -92,6 +93,37 @@ class PrivateReleaseJourney(unittest.TestCase):
                 with mock.patch.object(MODULE, "run_component", side_effect=AssertionError("untrusted installer executed")):
                     self.assertEqual(invoke()[1]["state"], "trust-rejected")
                 documents[base + "components.json"] = json.dumps(manifest).encode()
+                # A valid new signature under the same version is not the reviewed release.
+                pinned = [*argv, "--expected-source-commit", "a" * 40, "--expected-catalog-sha256", catalog_digest]
+                self.assertEqual(invoke(arguments=pinned)[0], 0)
+                changed = copy.deepcopy(manifest)
+                changed["components"][0]["release"]["source_commit"] = "b" * 40
+                changed_record = copy.deepcopy(record)
+                changed_record["private_catalog"] = changed
+                changed_record["machine_release"]["source_commit"] = "b" * 40
+                changed_blob = json.dumps(changed_record).encode()
+                documents.update({
+                    base + "components.json": json.dumps(changed).encode(),
+                    base + "fake-1.0.0.release.json": changed_blob,
+                    base + "fake-1.0.0.release.sigstore.json": json.dumps({"digest": hashlib.sha256(changed_blob).hexdigest(), "identity": identity}).encode(),
+                })
+                self.assertEqual(invoke()[1]["source_commit"], "b" * 40)
+                self.assertEqual(invoke(arguments=pinned)[1]["state"], "release-changed")
+                self.assertEqual(invoke(arguments=[*argv, "--expected-source-commit", "invalid"])[1]["state"], "invalid-release")
+                with mock.patch.object(MODULE, "run_component", side_effect=AssertionError("changed release executed")), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                    self.assertEqual(MODULE.main([*pinned, "install", "fake", "--json"]), 1)
+                # Same commit, valid new signature, changed archive metadata is also denied.
+                changed["components"][0]["release"]["source_commit"] = "a" * 40
+                changed["components"][0]["release"]["artifacts"][0]["archive_sha256"] = "e" * 64
+                changed_record["machine_release"]["source_commit"] = "a" * 40
+                changed_record["machine_release"]["artifacts"][0]["sha256"] = "e" * 64
+                changed_blob = json.dumps(changed_record).encode()
+                documents.update({base + "components.json": json.dumps(changed).encode(), base + "fake-1.0.0.release.json": changed_blob, base + "fake-1.0.0.release.sigstore.json": json.dumps({"digest": hashlib.sha256(changed_blob).hexdigest(), "identity": identity}).encode()})
+                self.assertEqual(invoke()[0], 0)
+                self.assertEqual(invoke(arguments=pinned)[1]["state"], "release-changed")
+                with mock.patch.object(MODULE, "run_component", side_effect=AssertionError("changed catalog executed")), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                    self.assertEqual(MODULE.main([*pinned, "install", "fake", "--json"]), 1)
+                documents.update({base + "components.json": json.dumps(manifest).encode(), base + "fake-1.0.0.release.json": blob, base + "fake-1.0.0.release.sigstore.json": json.dumps({"digest": hashlib.sha256(blob).hexdigest(), "identity": identity}).encode()})
                 with mock.patch.object(MODULE.shutil, "which", return_value=None):
                     self.assertEqual(invoke()[1]["state"], "verifier-unavailable")
                 changed = copy.deepcopy(manifest)

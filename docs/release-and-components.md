@@ -74,6 +74,14 @@ archive bytes are downloaded and checksum-verified immediately before extraction
 Installation, doctor, rollback and uninstall all repeat the trust check before running release-owned code.
 Private installer output is reduced to readiness/change booleans rather than forwarding arbitrary output.
 
+The ready report includes the full `source_commit` and `catalog_sha256`, a SHA-256 of the complete
+verified catalog encoded as sorted-key, compact JSON. This digest covers release metadata only, including
+archive URLs, hashes and installer policy. Fleet passes `--expected-source-commit` and
+`--expected-catalog-sha256` from its accepted preflight to later operations. Either mismatch returns
+`release-changed` before downloading or executing an installer, even when the new catalog has a valid
+signature and the same version. Malformed pins are rejected, not ignored. These pins do not replace
+signature verification or archive-byte checks.
+
 Closed failure states distinguish missing/locked/expired native access, rejected credentials, denied access,
 missing release, rate limiting, transport failure, incompatible host, invalid release, missing local trust
 policy, missing verifier and rejected trust. A 401 proves rejected credentials, not whether they were revoked
