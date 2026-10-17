@@ -57,6 +57,37 @@ def default_fleet_dependency_path() -> Path:
     return Path(override).expanduser() if override else Path.home() / ".agents/package/_package/defaults/dependencies.json"
 
 
+def validate_host_artifacts(component: dict[str, Any], *, private: bool) -> None:
+    release = component["release"]
+    artifacts = release.get("artifacts")
+    if not isinstance(artifacts, list) or not artifacts:
+        raise LauncherError(f"{component['id']}: host artifacts are required")
+    identities: set[tuple[str, str]] = set()
+    for artifact in artifacts:
+        digest = artifact.get("archive_sha256") if isinstance(artifact, dict) else None
+        if not isinstance(digest, str) or not is_hex(digest, 64):
+            raise LauncherError(f"{component['id']}: invalid archive SHA-256")
+        if not all(isinstance(artifact.get(key), str) and artifact[key] for key in ("platform", "architecture", "archive_url", "archive_root")):
+            raise LauncherError(f"{component['id']}: incomplete host artifact")
+        if private:
+            safe_private_url(artifact["archive_url"])
+        else:
+            url = urllib.parse.urlsplit(artifact["archive_url"])
+            prefix = f"/{release['repository']}/releases/download/{release['tag']}/"
+            if (
+                url.scheme != "https" or url.netloc != "github.com"
+                or url.query or url.fragment or not url.path.startswith(prefix)
+                or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", url.path[len(prefix):])
+            ):
+                raise LauncherError(f"{component['id']}: exact public GitHub release asset required")
+            if artifact["platform"] not in component["platforms"] or artifact["architecture"] not in component["architectures"]:
+                raise LauncherError(f"{component['id']}: host artifact is outside declared support")
+        identity = artifact["platform"], artifact["architecture"]
+        if identity in identities:
+            raise LauncherError(f"{component['id']}: duplicate host artifact")
+        identities.add(identity)
+
+
 def validate_component(component: dict[str, Any], *, private: bool) -> None:
     component_id = component.get("id")
     release = component.get("release", {})
@@ -69,21 +100,21 @@ def validate_component(component: dict[str, Any], *, private: bool) -> None:
         minimum = release.get("minimum_launcher_version")
         if not isinstance(minimum, str) or version_tuple(VERSION) < version_tuple(minimum):
             raise LauncherError(f"{component_id}: launcher upgrade required")
-        artifacts = release.get("artifacts")
-        if not isinstance(artifacts, list) or not artifacts:
-            raise LauncherError(f"{component_id}: private release artifacts are required")
-        identities: set[tuple[str, str]] = set()
-        for artifact in artifacts:
-            digest = artifact.get("archive_sha256") if isinstance(artifact, dict) else None
-            if not isinstance(digest, str) or not is_hex(digest, 64):
-                raise LauncherError(f"{component_id}: invalid archive SHA-256")
-            if not all(isinstance(artifact.get(key), str) and artifact[key] for key in ("platform", "architecture", "archive_url", "archive_root")):
-                raise LauncherError(f"{component_id}: incomplete private artifact")
-            safe_private_url(artifact["archive_url"])
-            identity = artifact["platform"], artifact["architecture"]
-            if identity in identities:
-                raise LauncherError(f"{component_id}: duplicate private host artifact")
-            identities.add(identity)
+        validate_host_artifacts(component, private=True)
+        return
+    if "artifacts" in release:
+        version_tuple(component.get("version", ""))
+        if not isinstance(release.get("source_commit"), str) or not is_hex(release["source_commit"], 40):
+            raise LauncherError(f"{component_id}: native release requires an exact source commit")
+        repository = release.get("repository")
+        if not isinstance(repository, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository) or release.get("tag") != f"v{component['version']}":
+            raise LauncherError(f"{component_id}: exact public repository and version tag required")
+        if any(key in release for key in ("archive_url", "archive_sha256", "archive_root")):
+            raise LauncherError(f"{component_id}: native release must select an exact host artifact")
+        minimum = release.get("minimum_launcher_version")
+        if not isinstance(minimum, str) or version_tuple(VERSION) < version_tuple(minimum):
+            raise LauncherError(f"{component_id}: launcher upgrade required")
+        validate_host_artifacts(component, private=False)
         return
     digest = release.get("archive_sha256")
     if not isinstance(digest, str) or len(digest) != 64:
@@ -480,7 +511,7 @@ def run_component(component: dict[str, Any], mode: str) -> dict[str, Any]:
     if args_key not in installer:
         raise LauncherError(f"{component['id']}: {mode} is not supported")
     private = component.get("_private") is True
-    if private:
+    if "artifacts" in release:
         operating_system, architecture = host_identity()
         matches = [
             artifact

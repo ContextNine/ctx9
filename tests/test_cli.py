@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -11,6 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
+from urllib.request import Request
 
 ROOT = Path(__file__).resolve().parent.parent
 CLI = ROOT / "src" / "ctx9.py"
@@ -133,6 +135,66 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
             result = self.run_cli("--manifest", str(manifest), "install", "fake")
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("checksum mismatch", result.stderr)
+
+    def test_public_native_archives_select_and_verify_the_host_without_private_access(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest = json.loads(self.fake_manifest(root).read_text())
+            component = manifest["components"][0]
+            source = root / component["release"]["archive_root"]
+            release = component["release"]
+            for key in ("archive_url", "archive_sha256", "archive_root"):
+                release.pop(key)
+            release.update(source_commit="a" * 40, minimum_launcher_version=MODULE.VERSION, artifacts=[])
+            downloads: dict[str, bytes] = {}
+            hosts = [("macos", "aarch64"), ("linux", "x86_64")]
+            for operating_system, architecture in hosts:
+                identity = f"{operating_system}-{architecture}"
+                (source / "scripts" / "install.py").write_text(
+                    f"import json; print(json.dumps({{'ready': True, 'host': '{identity}'}}))\n"
+                )
+                archive = root / f"{identity}.tar.gz"
+                with tarfile.open(archive, "w:gz") as output:
+                    output.add(source, arcname=source.name)
+                data = archive.read_bytes()
+                url = f"https://github.com/example/fake/releases/download/v1.0.0/{archive.name}"
+                downloads[url] = data
+                release["artifacts"].append({
+                    "platform": operating_system, "architecture": architecture,
+                    "archive_url": url, "archive_sha256": hashlib.sha256(data).hexdigest(),
+                    "archive_root": source.name,
+                })
+            component = MODULE.validate_manifest(manifest, private=False)["components"][0]
+            requests: list[str] = []
+
+            def anonymous_response(request: Request, *, timeout: int) -> io.BytesIO:
+                self.assertIsNone(request.get_header("Authorization"))
+                self.assertIsNone(request.get_header("Private-token"))
+                requests.append(request.full_url)
+                return io.BytesIO(downloads[request.full_url])
+
+            opener = mock.Mock()
+            opener.open.side_effect = anonymous_response
+            with mock.patch.object(MODULE.urllib.request, "build_opener", return_value=opener), mock.patch.object(
+                MODULE, "private_headers", side_effect=AssertionError("public install requested private access")
+            ):
+                for host in hosts:
+                    with mock.patch.object(MODULE, "host_identity", return_value=host):
+                        report = MODULE.run_component(component, "install")
+                    self.assertTrue(report["ready"])
+                    self.assertEqual(report["result"]["host"], "-".join(host))
+                self.assertEqual(requests, [a["archive_url"] for a in release["artifacts"]])
+                opener.reset_mock()
+                with mock.patch.object(MODULE, "host_identity", return_value=("linux", "aarch64")):
+                    with self.assertRaises(MODULE.LauncherError):
+                        MODULE.run_component(component, "install")
+                opener.open.assert_not_called()
+                opener.open.side_effect = lambda *args, **kwargs: io.BytesIO(b"tampered native archive")
+                with mock.patch.object(MODULE, "host_identity", return_value=hosts[0]), mock.patch.object(
+                    MODULE.subprocess, "run", side_effect=AssertionError("unverified installer ran")
+                ):
+                    with self.assertRaises(MODULE.LauncherError):
+                        MODULE.run_component(component, "install")
 
     def test_launcher_install_verify_and_second_run(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

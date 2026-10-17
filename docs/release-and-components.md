@@ -6,7 +6,7 @@ Each component entry must contain:
 
 - one stable component ID and display name;
 - exact version and release tag;
-- public archive URL and pinned SHA-256;
+- public archive URL and pinned SHA-256, or an exact artifact for each supported native host;
 - archive root and component-owned installer path;
 - supported operating systems and architectures;
 - install and doctor arguments accepted by the release installer;
@@ -28,6 +28,22 @@ The catalog may not reference private repositories, workspace paths, credentials
 When a public CLI is built from a private service repository, publish only its deterministic, source-stamped archive and checksum as assets on the public launcher release. The catalog points to that public asset and the component installer verifies its embedded source commit; the private service source and release credentials remain private.
 
 Testimonials follows this boundary. Its public `testimonials-<version>.tar.gz` contains only the bundled CLI, native credential helper, installer, public README and exact source commit marker. The service source, environment contracts and production configuration are excluded.
+
+## Public native archives
+
+Portable components use one archive. Native components use `release.artifacts` to select one archive by the exact operating-system/architecture pair, using the same selection as private native components. A supported operating system and a supported architecture do not imply every combination is available. A missing pair stops before download.
+
+A public native release declares:
+
+- `repository` as its public GitHub `owner/repository`, with `tag` equal to `v<component version>`;
+- a full `source_commit` and `minimum_launcher_version` naming an accepted launcher release with this capability;
+- `artifacts` containing `platform`, `architecture`, `archive_url`, `archive_sha256` and `archive_root` for each available host pair.
+
+Each URL must name a credential-free HTTPS asset under that repository's exact versioned GitHub release. Query strings, fragments and duplicate host pairs are rejected. Artifact support must fit the component's declared platforms and architectures. Native entries do not also declare a portable archive. Download, checksum verification, safe extraction and the component-owned installer remain the installation path. Public native downloads never request private headers or the private credential helper.
+
+Before moving Notenv into the public catalog, complete its anonymous signed-artifact and clean-machine acceptance. Retire its private Fleet recipe/overlay entry as part of the coordinated migration, preserving unrelated private components. Private catalogs still cannot replace a public component. Source capability alone does not authorize adding an unaccepted artifact to `components.json`.
+
+This capability is currently unreleased source. Local acceptance passes all 14 launcher tests. The added integration journey executes selected synthetic macOS/Linux archive installers, confirms anonymous requests, and denies an unsupported pair and tampered archive before installer execution. It does not prove real native binaries, cryptographic signatures, public Notenv downloads or an installed launcher upgrade. The existing hosted Python test/build matrix must also pass before release preparation.
 
 ## Private catalog overlay
 
