@@ -43,7 +43,7 @@ Each URL must name a credential-free HTTPS asset under that repository's exact v
 
 Before moving Notenv into the public catalog, complete its anonymous signed-artifact and clean-machine acceptance. Retire its private Fleet recipe/overlay entry as part of the coordinated migration, preserving unrelated private components. Private catalogs still cannot replace a public component. Source capability alone does not authorize adding an unaccepted artifact to `components.json`.
 
-This capability is currently unreleased source. Local acceptance passes all 14 launcher tests. The added integration journey executes selected synthetic macOS/Linux archive installers, confirms anonymous requests, and denies an unsupported pair and tampered archive before installer execution. It does not prove real native binaries, cryptographic signatures, public Notenv downloads or an installed launcher upgrade. The existing hosted Python test/build matrix must also pass before release preparation.
+This capability is currently unreleased source. Local acceptance passes all 14 launcher tests. [Hosted Test run 39006140517](https://github.com/ContextNine/ctx9/actions/runs/39006140517) also passes all 14 tests and the source archive build on macOS and Linux at exact source `5e979f2b7466b77ec2a2dd04ad639fe6dfdb7281`. The added integration journey executes selected synthetic macOS/Linux archive installers, confirms anonymous requests, and denies an unsupported pair and tampered archive before installer execution. It does not prove real native binaries, cryptographic signatures, public Notenv downloads or an installed launcher upgrade. No launcher version/tag or Notenv catalog entry is changed.
 
 ## Private catalog overlay
 
