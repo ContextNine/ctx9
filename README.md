@@ -33,7 +33,7 @@ ctx9 doctor
 
 `components.json` is the release catalog. Every component remains independently versioned and owns its installer and doctor. `ctx9 update` installs the exact component versions approved by the installed launcher catalog; updating the launcher provides a newer catalog.
 
-On an enrolled fleet machine, `ctx9 list` also discovers Secret Bindings from the exact private dependency registry. `ctx9 auth` keeps its read-only GitLab credential in an internal helper, and `ctx9 install secret-bindings` authenticates transparently. The public catalog never gains private repository metadata. See [the release contract](docs/release-and-components.md).
+On an enrolled fleet machine, `ctx9 list` also discovers Notenv from the exact private dependency registry. `ctx9 auth` keeps its read-only GitLab credential in an internal helper, and `ctx9 install notenv` authenticates transparently. The public catalog never gains private repository metadata. See [the release contract](docs/release-and-components.md).
 
 The catalog includes Fleet, Context Vault, [Codex Repo Sync](https://github.com/ContextNine/codex-repo-sync), [CodeFolderSync](https://github.com/ContextNine/codefoldersync), the dependency-free [Publisher CLI](https://github.com/ContextNine/publisher), and the source-stamped Testimonials management CLI. The commands have distinct jobs: `ctx9` manages components on one machine, `fleet` converges approved state across machines, and `vault` manages Vault content and upgrades.
 

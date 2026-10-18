@@ -259,7 +259,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
             registry = Path(temporary) / "dependencies.json"
             catalog = (
                 "https://gitlab.com/api/v4/projects/1/packages/generic/"
-                "secret-bindings-machine/1.2.4/components.json"
+                "notenv-machine/1.2.4/components.json"
             )
             registry.write_text(
                 json.dumps(

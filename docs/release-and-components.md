@@ -38,7 +38,7 @@ discover the catalog from their exact dependency registry and expose the narrow 
 ```bash
 ctx9 auth verify --json
 ctx9 list
-ctx9 install secret-bindings
+ctx9 install notenv
 ```
 
 Each private release entry must name an exact source commit, minimum launcher version, and one checksummed
