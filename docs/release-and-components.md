@@ -66,8 +66,9 @@ remain responsible for atomic activation, status, rollback, and uninstall.
 
 ### Authenticated release preflight
 
-The 0.4.0 candidate adds `ctx9 preflight <component> --json` and explicit private release trust policy.
-It is not in the released 0.3.24 archive. Publish and accept 0.4.0 before enrolling Fleet in this contract.
+The 0.4 series adds `ctx9 preflight <component> --json` and explicit private release trust policy.
+It is not in the released 0.3.24 archive. Version 0.4.1 discovers the enrolled dependency registry at
+`~/.agents/internal/defaults/dependencies.json`. Publish and accept it before enrolling Fleet in this contract.
 Do not replace an installed launcher with this checkout or assume the source version string proves the
 capability is installed.
 

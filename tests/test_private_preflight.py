@@ -176,7 +176,8 @@ class PrivateReleaseJourney(unittest.TestCase):
             verifier.chmod(0o755)
             public = root / "empty.json"
             public.write_text(json.dumps({"schema_version": 1, "components": []}))
-            registry = root / "dependencies.json"
+            registry = root / ".agents/internal/defaults/dependencies.json"
+            registry.parent.mkdir(parents=True)
             recipe = {"manager": "ctx9-component", "private_catalog_url": base + "components.json",
                 "credential_binding": "ctx9-gitlab-group-read", "provenance_provider": "github",
                 "provenance_project": "example/fixture", "provenance_workflow": workflow}
@@ -193,7 +194,8 @@ class PrivateReleaseJourney(unittest.TestCase):
 
             with (mock.patch.dict(os.environ, {"CTX9_GITLAB_READ_USERNAME": "NOTENV_SENTINEL_USER",
                     "CTX9_GITLAB_READ_TOKEN": "NOTENV_SENTINEL_TOKEN", "GITHUB_TOKEN": "NOTENV_SENTINEL_GITHUB",
-                    "ACTIONS_ID_TOKEN_REQUEST_TOKEN": "NOTENV_SENTINEL_OIDC", "CTX9_FLEET_DEPENDENCIES": str(registry)}),
+                    "ACTIONS_ID_TOKEN_REQUEST_TOKEN": "NOTENV_SENTINEL_OIDC", "CTX9_FLEET_DEPENDENCIES": ""}),
+                  mock.patch.object(MODULE.Path, "home", return_value=root),
                   mock.patch.object(MODULE, "private_read", side_effect=lambda url, binding: documents[url]),
                   mock.patch.object(MODULE.shutil, "which", return_value=str(verifier)),
                   mock.patch.object(MODULE, "download", side_effect=lambda url, destination, **kwargs:

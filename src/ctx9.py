@@ -22,7 +22,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any, NamedTuple
 
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 PREFLIGHT_STATES = {
@@ -54,7 +54,7 @@ def default_private_helper_path() -> Path:
 
 def default_fleet_dependency_path() -> Path:
     override = os.environ.get("CTX9_FLEET_DEPENDENCIES")
-    return Path(override).expanduser() if override else Path.home() / ".agents/package/_package/defaults/dependencies.json"
+    return Path(override).expanduser() if override else Path.home() / ".agents/internal/defaults/dependencies.json"
 
 
 def validate_host_artifacts(component: dict[str, Any], *, private: bool) -> None:
