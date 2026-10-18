@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-10-18",
+  "component": "fleet",
+  "component_version": "0.2.18",
+  "source_product": "the-skill-problem-system",
+  "source_product_version": "0.3.2",
+  "source_commit": "7da4cfe65d9e28981bf7f58d547647c93e41cc27",
+  "release_url": "https://github.com/ContextNine/the-skill-problem-system/releases/tag/v0.3.2",
+  "archive_sha256": "dae1367eba4d1d93d8a5750e506f6437822adcaaaa8f23fd6f0973caea65c698",
+  "source_check": {"run_id": 39144822335, "conclusion": "success"},
+  "release": {"run_id": 39144826973, "conclusion": "success"},
+  "github_attestation": {
+    "verified": true,
+    "certificate_identity": "https://github.com/ContextNine/the-skill-problem-system/.github/workflows/release.yml@refs/tags/v0.3.2",
+    "source_ref": "refs/tags/v0.3.2",
+    "source_and_signer_digest": "7da4cfe65d9e28981bf7f58d547647c93e41cc27",
+    "self_hosted_runners_denied": true
+  },
+  "actual_archive_acceptance": [
+    {"machine": "wootbook", "platform": "linux", "fresh_install": true, "doctor": true, "runtime_upgrade_noop": true},
+    {"machine": "workermacair", "platform": "macos", "fresh_install": true, "doctor": true, "runtime_upgrade_noop": true}
+  ],
+  "source_and_configuration_preserved": true,
+  "home_environment_preserved": true,
+  "daily_installations_changed": false,
+  "fleet_adopted": false,
+  "values_returned": false
+}

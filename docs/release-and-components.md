@@ -93,7 +93,7 @@ The launcher delegates cryptography to an enrolled `cosign` executable using
 [`verify-blob`, exact certificate identity and issuer](https://docs.sigstore.dev/cosign/verifying/verify/).
 The launcher itself still uses only Python's standard library. Cosign installation/version acceptance is a
 separate dependency gate, not an automatic download or a cryptographic implementation inside the launcher.
-The prepared verifier gate requires Cosign 3.1.3 or newer and rejects older binaries before reading signed
+The 0.4.2 verifier gate requires Cosign 3.1.3 or newer and rejects older binaries before reading signed
 records. This covers the upstream [legacy-bundle identity-bypass advisory](https://github.com/sigstore/cosign/security/advisories/GHSA-fx35-mq7g-6g98).
 No verifier means `verifier-unavailable`, never a checksum-only fallback. The verifier child does not receive
 private-read or management credentials, and its raw output is not printed.
@@ -132,3 +132,15 @@ issuer and tampered-record checks use that same real signature. Retained receipt
 cryptographic check from its synthetic transport/component and unverified native custody. It never changes
 a daily installation or contacts a real private package endpoint. Official release downloads and actual
 Notenv/native custody still need their own acceptance.
+
+## Fleet 0.2.18 catalog selection
+
+Launcher 0.4.2 selects Fleet CLI 0.2.18 from the official Skill Problem System
+0.3.2 source release. The component and source-product version numbers are
+independent. Its archive has no enclosing directory, so the public catalog
+selects `archive_root: "."`; it contains only regular files and directories.
+The original published bytes, exact tag/source/workflow attestation and isolated
+installation, doctor and repeat runtime-upgrade pass on Linux and macOS. Source
+ownership and configuration remain unchanged during the repeat upgrade. See the
+[receipt](evidence/fleet-0.2.18-2026-10-18.json). Daily Fleet adoption and the
+new Launcher's own official-download acceptance remain separate gates.
