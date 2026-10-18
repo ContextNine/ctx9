@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-10-18",
+  "component": "ctx9",
+  "version": "0.4.1",
+  "tag": "v0.4.1",
+  "source_commit": "76ee057a8badea27c70962ba95fb48ea474888e7",
+  "source_check": {
+    "run_id": 39135155934,
+    "run_attempt": 1,
+    "conclusion": "success",
+    "url": "https://github.com/ContextNine/ctx9/actions/runs/39135155934",
+    "jobs": [
+      { "id": 117698063253, "platform": "linux", "conclusion": "success" },
+      { "id": 117698063397, "platform": "macos", "conclusion": "success" }
+    ],
+    "local_tests": 15,
+    "real_sigstore_installed_archive_journey": true,
+    "fixture_transport": "synthetic",
+    "fixture_component": "synthetic",
+    "native_custody_verified": false
+  },
+  "official_release": {
+    "run_id": 39135322301,
+    "run_attempt": 1,
+    "conclusion": "success",
+    "url": "https://github.com/ContextNine/ctx9/actions/runs/39135322301",
+    "artifact": "ctx9-0.4.1.tar.gz",
+    "sha256": "063cad2cde8966d4a899132d794261fbedcdc5f888d2abad50ed1a5f48d2cad3",
+    "checksum_sha256": "364a4f32cc97d43f43aa0173c2dca3c4f1e3614c9189ceb5d7fd515b1642d3d9",
+    "source_record_sha256": "9d81bc680fcc95e8a947ed47036600d4dcde6fc589703993cef76408e8226a2e",
+    "attestation_verified": true,
+    "attestation_policy": {
+      "repository": "ContextNine/ctx9",
+      "signer_workflow": "ContextNine/ctx9/.github/workflows/release.yml",
+      "source_digest": "76ee057a8badea27c70962ba95fb48ea474888e7",
+      "source_ref": "refs/tags/v0.4.1",
+      "deny_self_hosted_runners": true
+    }
+  },
+  "official_archive_acceptance": {
+    "scope": "Isolated cache paths, not daily installations",
+    "linux_x86_64_machines": 1,
+    "macos_arm64_machines": 2,
+    "fresh_installation": true,
+    "installer_verification": true,
+    "second_run_noop": true,
+    "daily_installations_changed": false,
+    "private_custody_verified": false
+  },
+  "remaining_gates": [
+    "Enroll an accepted Cosign verifier as a normal declared dependency",
+    "Integrate policy and adoption coordination into the primary-owned Fleet source",
+    "Adopt the accepted public launcher through the primary-owned Fleet workflow",
+    "Verify actual signed Notenv release and native bootstrap custody on intended machines"
+  ],
+  "fleet_adopted": false,
+  "values_returned": false
+}
