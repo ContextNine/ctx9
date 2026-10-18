@@ -93,6 +93,8 @@ The launcher delegates cryptography to an enrolled `cosign` executable using
 [`verify-blob`, exact certificate identity and issuer](https://docs.sigstore.dev/cosign/verifying/verify/).
 The launcher itself still uses only Python's standard library. Cosign installation/version acceptance is a
 separate dependency gate, not an automatic download or a cryptographic implementation inside the launcher.
+The prepared verifier gate requires Cosign 3.1.3 or newer and rejects older binaries before reading signed
+records. This covers the upstream [legacy-bundle identity-bypass advisory](https://github.com/sigstore/cosign/security/advisories/GHSA-fx35-mq7g-6g98).
 No verifier means `verifier-unavailable`, never a checksum-only fallback. The verifier child does not receive
 private-read or management credentials, and its raw output is not printed.
 Private component installers also do not inherit download, management or CI signing credentials. They retain

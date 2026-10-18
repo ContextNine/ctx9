@@ -47,6 +47,7 @@ class PrivateReleaseJourney(unittest.TestCase):
             verifier.write_text(
                 "#!/usr/bin/env python3\nimport hashlib,json,os,sys\n"
                 "args=sys.argv[1:]\n"
+                "if args==['version','--json']: print(json.dumps({'gitVersion':'v3.1.3'}));sys.exit(0)\n"
                 "bundle=json.load(open(args[args.index('--bundle')+1]))\n"
                 "valid=hashlib.sha256(open(args[-1],'rb').read()).hexdigest()==bundle['digest']\n"
                 "valid=valid and args[args.index('--certificate-identity')+1]==bundle['identity']\n"
@@ -167,7 +168,9 @@ class PrivateReleaseJourney(unittest.TestCase):
             verifier = root / "cosign"
             verifier.write_text(
                 "#!/usr/bin/env python3\nimport hashlib,json,os,sys\n"
-                "args=sys.argv[1:];bundle=json.load(open(args[args.index('--bundle')+1]))\n"
+                "args=sys.argv[1:]\n"
+                "if args==['version','--json']: print(json.dumps({'gitVersion':'v3.1.3'}));sys.exit(0)\n"
+                "bundle=json.load(open(args[args.index('--bundle')+1]))\n"
                 "valid=hashlib.sha256(open(args[-1],'rb').read()).hexdigest()==bundle['digest']\n"
                 "for flag,key in [('--certificate-identity','identity'),('--certificate-oidc-issuer','issuer'),('--certificate-github-workflow-sha','commit')]:\n"
                 " valid=valid and flag in args and args[args.index(flag)+1]==bundle[key]\n"
@@ -209,6 +212,10 @@ class PrivateReleaseJourney(unittest.TestCase):
                         pins = ("--expected-source-commit", report["source_commit"], "--expected-catalog-sha256", report["catalog_sha256"])
                         self.assertEqual(invoke("install", pins)[0], 0)
                 with mock.patch.object(MODULE, "run_component", side_effect=AssertionError("untrusted installer ran")):
+                    verifier_source = verifier.read_text()
+                    verifier.write_text(verifier_source.replace("v3.1.3", "v2.6.2"))
+                    self.assertEqual(invoke()[1]["state"], "verifier-upgrade-required")
+                    verifier.write_text(verifier_source)
                     # The provider is selected by policy, not by a bundle or record claim.
                     signed(certificate_issuer="https://gitlab.com")
                     self.assertEqual(invoke()[1]["state"], "trust-rejected")

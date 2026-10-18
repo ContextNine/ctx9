@@ -29,7 +29,7 @@ PREFLIGHT_STATES = {
     "ready", "credential-missing", "credential-locked", "credential-unavailable",
     "credential-expired", "credential-rejected", "access-denied", "release-unavailable",
     "rate-limited", "transport-unavailable", "invalid-release", "platform-incompatible",
-    "launcher-upgrade-required", "trust-policy-missing", "verifier-unavailable", "trust-rejected", "release-changed",
+    "launcher-upgrade-required", "trust-policy-missing", "verifier-unavailable", "verifier-upgrade-required", "trust-rejected", "release-changed",
 }
 
 
@@ -284,6 +284,20 @@ def verify_private_release(component: dict[str, Any], manifest: dict[str, Any], 
     verifier = shutil.which("cosign")
     if verifier is None:
         raise PreflightError("verifier-unavailable")
+    env = {key: os.environ[key] for key in ("HOME", "PATH", "TMPDIR", "SSL_CERT_FILE", "SSL_CERT_DIR") if key in os.environ}
+    try:
+        result = subprocess.run([verifier, "version", "--json"], env=env, stdin=subprocess.DEVNULL,
+                                capture_output=True, text=True, timeout=10, check=False)
+        if result.returncode or len(result.stdout) > 65536:
+            raise ValueError
+        metadata = json.loads(result.stdout)
+        version_match = re.fullmatch(r"v([0-9]+)\.([0-9]+)\.([0-9]+)", metadata.get("gitVersion", ""))
+        if version_match is None:
+            raise ValueError
+        if tuple(int(part) for part in version_match.groups()) < (3, 1, 3):
+            raise PreflightError("verifier-upgrade-required")
+    except (OSError, subprocess.TimeoutExpired, ValueError, TypeError, AttributeError):
+        raise PreflightError("verifier-unavailable") from None
     blob = private_read(f"{base}{prefix}.json", PRIVATE_CREDENTIAL_BINDING)
     bundle = private_read(f"{base}{prefix}.sigstore.json", PRIVATE_CREDENTIAL_BINDING)
     try:
@@ -313,7 +327,6 @@ def verify_private_release(component: dict[str, Any], manifest: dict[str, Any], 
         if workflow_commit is not None:
             verification.extend(["--certificate-github-workflow-sha", workflow_commit])
         # The verifier has no need for private-read credentials or management authority.
-        env = {key: os.environ[key] for key in ("HOME", "PATH", "TMPDIR", "SSL_CERT_FILE", "SSL_CERT_DIR") if key in os.environ}
         try:
             result = subprocess.run([*verification, str(blob_path)], env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=45, check=False)
         except (OSError, subprocess.TimeoutExpired):
