@@ -44,6 +44,7 @@ def main() -> int:
             info.uid = info.gid = 0
             info.uname = info.gname = ""
             info.mtime = 0
+            info.mode = 0o644
             with source.open("rb") as handle:
                 archive.addfile(info, handle)
     with archive_path.open("wb") as output:
