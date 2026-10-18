@@ -43,7 +43,7 @@ Each URL must name a credential-free HTTPS asset under that repository's exact v
 
 Before moving Notenv into the public catalog, complete its anonymous signed-artifact and clean-machine acceptance. Retire its private Fleet recipe/overlay entry as part of the coordinated migration, preserving unrelated private components. Private catalogs still cannot replace a public component. Source capability alone does not authorize adding an unaccepted artifact to `components.json`.
 
-This capability is currently unreleased source. Local acceptance passes all 14 launcher tests. [Hosted Test run 39006140517](https://github.com/ContextNine/ctx9/actions/runs/39006140517) also passes all 14 tests and the source archive build on macOS and Linux at exact source `5e979f2b7466b77ec2a2dd04ad639fe6dfdb7281`. The added integration journey executes selected synthetic macOS/Linux archive installers, confirms anonymous requests, and denies an unsupported pair and tampered archive before installer execution. It does not prove real native binaries, cryptographic signatures, public Notenv downloads or an installed launcher upgrade. No launcher version/tag or Notenv catalog entry is changed.
+The original source acceptance passed all 14 launcher tests in [hosted Test run 39006140517](https://github.com/ContextNine/ctx9/actions/runs/39006140517) at exact source `5e979f2b7466b77ec2a2dd04ad639fe6dfdb7281`. The integration journey executes selected synthetic macOS/Linux archive installers, confirms anonymous requests, and denies an unsupported pair and tampered archive before installer execution. Launcher 0.4.2 now publishes this capability and is adopted on all three registered machines, with [official-download and installed-byte acceptance](evidence/launcher-0.4.2-2026-10-18.json). Actual public Notenv native downloads and their installed custody remain separate gates; no Notenv public catalog entry is added.
 
 ## Private catalog overlay
 
@@ -142,5 +142,10 @@ selects `archive_root: "."`; it contains only regular files and directories.
 The original published bytes, exact tag/source/workflow attestation and isolated
 installation, doctor and repeat runtime-upgrade pass on Linux and macOS. Source
 ownership and configuration remain unchanged during the repeat upgrade. See the
-[receipt](evidence/fleet-0.2.18-2026-10-18.json). Daily Fleet adoption and the
-new Launcher's own official-download acceptance remain separate gates.
+[receipt](evidence/fleet-0.2.18-2026-10-18.json). Launcher 0.4.2's official
+download passes isolated acceptance on all three machines. Normal primary-owned
+Fleet updates adopt both releases; installed launcher runtime/catalog files and
+all 33 Fleet runtime files match the official archives on each machine, and
+Fleet doctors pass. The [adoption receipt](evidence/launcher-0.4.2-2026-10-18.json)
+records the updater's stale final-report limitation. This does not accept or
+adopt a new Notenv native release.

@@ -23,7 +23,8 @@
   ],
   "source_and_configuration_preserved": true,
   "home_environment_preserved": true,
-  "daily_installations_changed": false,
-  "fleet_adopted": false,
+  "isolated_acceptance_changed_daily_installations": false,
+  "fleet_adopted": true,
+  "daily_adoption_receipt": "launcher-0.4.2-2026-10-18.json",
   "values_returned": false
 }

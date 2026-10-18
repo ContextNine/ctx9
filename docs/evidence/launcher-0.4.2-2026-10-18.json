@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-10-18",
+  "version": "0.4.2",
+  "source_commit": "7e3de12cea2fa797e9555085c6510e82a4aa17a0",
+  "release_url": "https://github.com/ContextNine/ctx9/releases/tag/v0.4.2",
+  "archive_sha256": "da7e12a6861dd1f1178998ea411b5bf3b67d70d967646c8b80451eeb719934c2",
+  "source_check": {"run_id": 39145705737, "conclusion": "success"},
+  "release": {"run_id": 39145789708, "conclusion": "success"},
+  "github_attestation": {
+    "verified": true,
+    "certificate_identity": "https://github.com/ContextNine/ctx9/.github/workflows/release.yml@refs/tags/v0.4.2",
+    "source_ref": "refs/tags/v0.4.2",
+    "source_and_signer_digest": "7e3de12cea2fa797e9555085c6510e82a4aa17a0",
+    "self_hosted_runners_denied": true
+  },
+  "official_download_isolated_acceptance": {
+    "machines": ["wootbook", "mattbook", "workermacair"],
+    "fresh_install": true,
+    "doctor": true,
+    "second_run_noop": true,
+    "home_environment_preserved": true,
+    "daily_installations_changed": false
+  },
+  "daily_adoption": {
+    "owner": "primary Fleet update",
+    "dependencies": ["ctx9-launcher", "fleet-cli"],
+    "machines": ["wootbook", "mattbook", "workermacair"],
+    "launcher_version": "0.4.2",
+    "fleet_version": "0.2.18",
+    "launcher_runtime_and_catalog_match_official_archive": true,
+    "fleet_runtime_files_per_machine_matching_official_archive": 33,
+    "fleet_doctor": true,
+    "updater_reporting_limit": "The later pinned-recipe stage reports skipped-policy using its initial observations even after normal sync installs and verifies the desired releases. Installed byte comparisons and doctors independently confirm adoption."
+  },
+  "minimum_cosign_version": "3.1.3",
+  "notenv_native_release_or_adoption_proven": false,
+  "values_returned": false
+}
