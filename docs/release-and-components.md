@@ -66,15 +66,27 @@ remain responsible for atomic activation, status, rollback, and uninstall.
 
 ### Authenticated release preflight
 
-The source implementation adds `ctx9 preflight <component> --json`. It is not in the released 0.3.24 archive.
-Publish and accept a new launcher release before enrolling Fleet in this command. Do not replace an installed
-launcher with this checkout or assume the source version string proves the capability is installed.
+The 0.4.0 candidate adds `ctx9 preflight <component> --json` and explicit private release trust policy.
+It is not in the released 0.3.24 archive. Publish and accept 0.4.0 before enrolling Fleet in this contract.
+Do not replace an installed launcher with this checkout or assume the source version string proves the
+capability is installed.
 
-Private recipes must pin `provenance_project`, such as the component's GitLab namespace/project, alongside
-the exact catalog URL, `ctx9-gitlab-group-read` binding and `verify.exact` semantic version. The launcher
-derives the exact `.gitlab-ci.yml@refs/tags/v<version>` certificate identity from this local policy, with
-`https://gitlab.com` as issuer. It never trusts a signer selected by the downloaded catalog. Fleet passes
-the same policy explicitly to preflight and installation.
+Private recipes must pin `provenance_provider` and `provenance_project`, alongside the exact catalog URL,
+`ctx9-gitlab-group-read` binding and `verify.exact` semantic version. Storage and signing are independent:
+GitLab Generic Packages can hold a release signed by the configured GitHub workflow.
+
+- `provenance_provider: gitlab` derives the exact `.gitlab-ci.yml@refs/tags/v<version>` certificate identity
+  and `https://gitlab.com` issuer. This explicitly selects a retained GitLab release, without fallback.
+- `provenance_provider: github` requires an owner/repository project and `provenance_workflow`, such as
+  `.github/workflows/publish-machine-release.yml@refs/heads/master`. The identity is that exact repository,
+  workflow and ref, with issuer `https://token.actions.githubusercontent.com`. The signed record's
+  publication fields must match the enrolled policy. Cosign must also bind its claimed publisher commit
+  to the certificate's workflow SHA, independently of the application's source commit.
+
+Missing or ambiguous policy fails closed. A failed issuer never selects the other provider. The downloaded
+catalog cannot choose a signer. Fleet passes the same policy explicitly to preflight and installation.
+An existing recipe needs an explicit provider before adopting this contract; no implicit GitLab default
+or source CLI fallback is provided. These settings do not change its selected component version.
 
 The launcher delegates cryptography to an enrolled `cosign` executable using
 [`verify-blob`, exact certificate identity and issuer](https://docs.sigstore.dev/cosign/verifying/verify/).
@@ -82,6 +94,8 @@ The launcher itself still uses only Python's standard library. Cosign installati
 separate dependency gate, not an automatic download or a cryptographic implementation inside the launcher.
 No verifier means `verifier-unavailable`, never a checksum-only fallback. The verifier child does not receive
 private-read or management credentials, and its raw output is not printed.
+Private component installers also do not inherit download, management or CI signing credentials. They retain
+only public runtime, home/XDG and native-session settings needed for their own installation and custody.
 
 Preflight reads the exact catalog, signed release JSON and bundle. It verifies the bundle, the complete
 catalog's equality to the signed catalog, source/version/product identity, host eligibility and the signed
@@ -107,3 +121,11 @@ no provider response body, traceback, header or key is included in the report.
 Acceptance must use the real signed release and real accepted Cosign on both supported OS families. The
 synthetic integration fixture proves orchestration, matching and fail-closed behavior, not cryptography or
 live credential custody. Until that acceptance, do not claim the new installation workflow is shipped.
+
+The hosted `Test` workflow separately installs the built launcher archive into isolated paths on both
+macOS and Linux. It signs synthetic component metadata using real GitHub Sigstore, then the installed
+launcher verifies the actual bundle and exercises pinned install, doctor and no-op installation. Wrong
+issuer and tampered-record checks use that same real signature. Retained receipts distinguish this real
+cryptographic check from its synthetic transport/component and unverified native custody. It never changes
+a daily installation or contacts a real private package endpoint. Official release downloads and actual
+Notenv/native custody still need their own acceptance.

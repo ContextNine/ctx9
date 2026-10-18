@@ -62,7 +62,7 @@ class PrivateReleaseJourney(unittest.TestCase):
             }
             empty = root / "public.json"
             empty.write_text(json.dumps({"schema_version": 1, "components": []}))
-            argv = ["--manifest", str(empty), "--private-catalog-url", base + "components.json", "--credential-binding", "ctx9-gitlab-group-read", "--provenance-project", "example/fixture", "--expected-version", "1.0.0"]
+            argv = ["--manifest", str(empty), "--private-catalog-url", base + "components.json", "--credential-binding", "ctx9-gitlab-group-read", "--provenance-provider", "gitlab", "--provenance-project", "example/fixture", "--expected-version", "1.0.0"]
 
             def invoke(operation: str = "preflight", arguments: list[str] | None = None):
                 output = io.StringIO()
@@ -130,6 +130,101 @@ class PrivateReleaseJourney(unittest.TestCase):
                 changed["components"][0]["release"]["artifacts"][0]["architecture"] = "unsupported"
                 documents[base + "components.json"] = json.dumps(changed).encode()
                 self.assertEqual(invoke()[1]["state"], "platform-incompatible")
+
+    def test_github_release_uses_only_enrolled_workflow_issuer_and_certificate_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = json.loads(test_cli.LauncherTests().fake_manifest(root).read_text())
+            component = manifest["components"][0]
+            archive = component["release"]
+            base = "https://gitlab.com/api/v4/projects/1/packages/generic/fixture/1.0.0/"
+            workflow = ".github/workflows/publish-machine-release.yml@refs/heads/master"
+            identity = f"https://github.com/example/fixture/{workflow}"
+            issuer = "https://token.actions.githubusercontent.com"
+            manifest.update(catalog_kind="private-overlay", credential_binding="ctx9-gitlab-group-read")
+            component["release"] = {"source_commit": "a" * 40, "minimum_launcher_version": "0.3.0",
+                "provenance_url": base + "fake-1.0.0.release.sigstore.json",
+                "artifacts": [{"platform": host, "architecture": arch, "archive_url": base + f"fake-{host}.tar.gz",
+                    "archive_root": archive["archive_root"], "archive_sha256": archive["archive_sha256"]}
+                    for host, arch in (("macos", "aarch64"), ("linux", "x86_64"))]}
+            record = {"schema_version": 1, "signed": True, "values_returned": False, "private_catalog": manifest,
+                "publication": {"provider": "github", "repository": "example/fixture", "workflow_ref": "example/fixture/" + workflow,
+                                "workflow_commit": "b" * 40},
+                "machine_release": {"product": "fake", "version": "1.0.0", "source_commit": "a" * 40,
+                    "artifacts": [{"platform": item["platform"], "architecture": item["architecture"],
+                        "name": item["archive_url"].removeprefix(base), "sha256": item["archive_sha256"]}
+                        for item in component["release"]["artifacts"]]}}
+            documents = {base + "components.json": json.dumps(manifest).encode()}
+
+            def signed(claims=record, *, certificate_issuer=issuer, certificate_commit="b" * 40):
+                blob = json.dumps(claims).encode()
+                documents[base + "fake-1.0.0.release.json"] = blob
+                documents[base + "fake-1.0.0.release.sigstore.json"] = json.dumps({
+                    "digest": hashlib.sha256(blob).hexdigest(), "identity": identity,
+                    "issuer": certificate_issuer, "commit": certificate_commit}).encode()
+
+            signed()
+            verifier = root / "cosign"
+            verifier.write_text(
+                "#!/usr/bin/env python3\nimport hashlib,json,os,sys\n"
+                "args=sys.argv[1:];bundle=json.load(open(args[args.index('--bundle')+1]))\n"
+                "valid=hashlib.sha256(open(args[-1],'rb').read()).hexdigest()==bundle['digest']\n"
+                "for flag,key in [('--certificate-identity','identity'),('--certificate-oidc-issuer','issuer'),('--certificate-github-workflow-sha','commit')]:\n"
+                " valid=valid and flag in args and args[args.index(flag)+1]==bundle[key]\n"
+                "valid=valid and not any(k.startswith('CTX9_GITLAB_') or k in ['GITHUB_TOKEN','ACTIONS_ID_TOKEN_REQUEST_TOKEN'] for k in os.environ)\n"
+                "sys.exit(0 if valid else 1)\n")
+            verifier.chmod(0o755)
+            public = root / "empty.json"
+            public.write_text(json.dumps({"schema_version": 1, "components": []}))
+            registry = root / "dependencies.json"
+            recipe = {"manager": "ctx9-component", "private_catalog_url": base + "components.json",
+                "credential_binding": "ctx9-gitlab-group-read", "provenance_provider": "github",
+                "provenance_project": "example/fixture", "provenance_workflow": workflow}
+            registry.write_text(json.dumps({"schema_version": 2, "dependencies": [{"contract": {
+                "verify": {"exact": "1.0.0"}, "recipes": {"macos": recipe, "linux": recipe}}}]}))
+            arguments = ["--manifest", str(public), "--expected-version", "1.0.0"]
+
+            def invoke(operation="preflight", extra=()):
+                output = io.StringIO()
+                with redirect_stdout(output), redirect_stderr(io.StringIO()):
+                    code = MODULE.main([*arguments, *extra, operation, "fake", "--json"])
+                self.assertNotIn("NOTENV_SENTINEL_", output.getvalue())
+                return code, json.loads(output.getvalue()) if output.getvalue() else None
+
+            with (mock.patch.dict(os.environ, {"CTX9_GITLAB_READ_USERNAME": "NOTENV_SENTINEL_USER",
+                    "CTX9_GITLAB_READ_TOKEN": "NOTENV_SENTINEL_TOKEN", "GITHUB_TOKEN": "NOTENV_SENTINEL_GITHUB",
+                    "ACTIONS_ID_TOKEN_REQUEST_TOKEN": "NOTENV_SENTINEL_OIDC", "CTX9_FLEET_DEPENDENCIES": str(registry)}),
+                  mock.patch.object(MODULE, "private_read", side_effect=lambda url, binding: documents[url]),
+                  mock.patch.object(MODULE.shutil, "which", return_value=str(verifier)),
+                  mock.patch.object(MODULE, "download", side_effect=lambda url, destination, **kwargs:
+                      destination.write_bytes(Path(archive["archive_url"].removeprefix("file://")).read_bytes()))):
+                for host in (("macos", "aarch64"), ("linux", "x86_64")):
+                    with self.subTest(host=host), mock.patch.object(MODULE, "host_identity", return_value=host):
+                        code, report = invoke()
+                        self.assertEqual(code, 0)
+                        self.assertEqual(report["source_commit"], "a" * 40)
+                        self.assertTrue(report["trust_verified"])
+                        pins = ("--expected-source-commit", report["source_commit"], "--expected-catalog-sha256", report["catalog_sha256"])
+                        self.assertEqual(invoke("install", pins)[0], 0)
+                with mock.patch.object(MODULE, "run_component", side_effect=AssertionError("untrusted installer ran")):
+                    # The provider is selected by policy, not by a bundle or record claim.
+                    signed(certificate_issuer="https://gitlab.com")
+                    self.assertEqual(invoke()[1]["state"], "trust-rejected")
+                    signed(certificate_commit="c" * 40)
+                    self.assertEqual(invoke()[1]["state"], "trust-rejected")
+                    changed = copy.deepcopy(record)
+                    changed["publication"]["workflow_ref"] = "example/fixture/.github/workflows/unreviewed.yml@refs/heads/master"
+                    signed(changed)
+                    self.assertEqual(invoke()[1]["state"], "trust-rejected")
+                    signed()
+                    for extra in (("--provenance-project", "other/fixture"), ("--provenance-workflow", "invalid"),
+                                  ("--expected-source-commit", "f" * 40)):
+                        self.assertEqual(invoke(extra=extra)[0], 1)
+                    # Incomplete enrolled policy cannot imply GitLab or discover a signer.
+                    del recipe["provenance_provider"]
+                    registry.write_text(json.dumps({"schema_version": 2, "dependencies": [{"contract": {
+                        "verify": {"exact": "1.0.0"}, "recipes": {"linux": recipe}}}]}))
+                    self.assertEqual(invoke()[1]["state"], "trust-policy-missing")
 
     def test_private_transport_and_native_state_never_echo_provider_output(self) -> None:
         url = "https://gitlab.com/api/v4/projects/1/packages/generic/fixture/1.0.0/components.json"

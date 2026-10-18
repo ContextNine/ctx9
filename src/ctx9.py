@@ -20,9 +20,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, NamedTuple
 
-VERSION = "0.3.24"
+VERSION = "0.4.0"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 PREFLIGHT_STATES = {
@@ -227,17 +227,36 @@ def load_private_manifest(url: str, binding: str) -> dict[str, Any]:
     return validate_manifest(data, private=True)
 
 
-def private_release_policy(url: str, project: str | None, version: str | None) -> str:
+class PrivateReleasePolicy(NamedTuple):
+    provider: str
+    project: str
+    version: str
+    identity: str
+    issuer: str
+    workflow: str | None
+
+
+def private_release_policy(url: str, project: str | None, version: str | None, *, provider: str | None, workflow: str | None) -> PrivateReleasePolicy:
     """Trust comes from the caller's enrolled configuration, never catalog claims."""
     if not project or not re.fullmatch(r"[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)+", project) or any(part in {".", ".."} for part in project.split("/")) or not version or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
         raise PreflightError("trust-policy-missing")
     if not re.fullmatch(r"https://gitlab\.com/api/v4/projects/[0-9]+/packages/generic/[a-z0-9-]+/" + re.escape(version) + r"/components\.json", url):
         raise PreflightError("invalid-release")
-    return f"https://gitlab.com/{project}//.gitlab-ci.yml@refs/tags/v{version}"
+    if provider == "gitlab" and workflow is None:
+        return PrivateReleasePolicy(provider, project, version,
+            f"https://gitlab.com/{project}//.gitlab-ci.yml@refs/tags/v{version}", "https://gitlab.com", None)
+    if (provider == "github" and re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", project)
+        and isinstance(workflow, str) and re.fullmatch(
+            r"\.github/workflows/[A-Za-z0-9_-]+\.ya?ml@refs/heads/[A-Za-z0-9_./-]+", workflow)
+        and ".." not in workflow and "//" not in workflow and not workflow.endswith(("/", ".", ".lock"))):
+        return PrivateReleasePolicy(provider, project, version,
+            f"https://github.com/{project}/{workflow}", "https://token.actions.githubusercontent.com", workflow)
+    raise PreflightError("trust-policy-missing")
 
 
-def verify_private_release(component: dict[str, Any], manifest: dict[str, Any], url: str, identity: str, version: str) -> dict[str, Any]:
+def verify_private_release(component: dict[str, Any], manifest: dict[str, Any], url: str, policy: PrivateReleasePolicy) -> dict[str, Any]:
     """Verify signed catalog/host digests before downloading executable code."""
+    version = policy.version
     if component.get("version") != version:
         raise PreflightError("invalid-release")
     ensure_supported(component)
@@ -267,21 +286,41 @@ def verify_private_release(component: dict[str, Any], manifest: dict[str, Any], 
         raise PreflightError("verifier-unavailable")
     blob = private_read(f"{base}{prefix}.json", PRIVATE_CREDENTIAL_BINDING)
     bundle = private_read(f"{base}{prefix}.sigstore.json", PRIVATE_CREDENTIAL_BINDING)
+    try:
+        record = json.loads(blob)
+        if not isinstance(record, dict):
+            raise ValueError
+    except (UnicodeError, ValueError):
+        raise PreflightError("invalid-release") from None
+    workflow_commit = None
+    if policy.provider == "github":
+        publication = record.get("publication")
+        if (not isinstance(publication, dict) or publication.get("provider") != policy.provider
+            or publication.get("repository") != policy.project
+            or publication.get("workflow_ref") != f"{policy.project}/{policy.workflow}"
+            or not isinstance(publication.get("workflow_commit"), str)
+            or not is_hex(publication["workflow_commit"], 40)):
+            raise PreflightError("trust-rejected")
+        # This record claim is accepted only if the certificate binds that commit.
+        workflow_commit = publication["workflow_commit"]
     with tempfile.TemporaryDirectory(prefix="ctx9-trust-") as directory:
         root = Path(directory)
         blob_path, bundle_path = root / "release.json", root / "bundle.json"
         blob_path.write_bytes(blob)
         bundle_path.write_bytes(bundle)
+        verification = [verifier, "verify-blob", "--bundle", str(bundle_path),
+                        "--certificate-identity", policy.identity, "--certificate-oidc-issuer", policy.issuer]
+        if workflow_commit is not None:
+            verification.extend(["--certificate-github-workflow-sha", workflow_commit])
         # The verifier has no need for private-read credentials or management authority.
         env = {key: os.environ[key] for key in ("HOME", "PATH", "TMPDIR", "SSL_CERT_FILE", "SSL_CERT_DIR") if key in os.environ}
         try:
-            result = subprocess.run([verifier, "verify-blob", "--bundle", str(bundle_path), "--certificate-identity", identity, "--certificate-oidc-issuer", "https://gitlab.com", str(blob_path)], env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=45, check=False)
+            result = subprocess.run([*verification, str(blob_path)], env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=45, check=False)
         except (OSError, subprocess.TimeoutExpired):
             raise PreflightError("verifier-unavailable") from None
         if result.returncode:
             raise PreflightError("trust-rejected")
     try:
-        record = json.loads(blob)
         signed_catalog = record["private_catalog"]
         machine = record["machine_release"]
         catalog = {**manifest, "components": [{key: value for key, value in item.items() if key != "_private"} for item in manifest["components"]]}
@@ -368,20 +407,22 @@ def configured_private_catalogs(path: Path | None = None) -> list[tuple[str, str
     return catalogs
 
 
-def configured_private_policy(url: str) -> tuple[str | None, str | None]:
+def configured_private_policy(url: str) -> tuple[str | None, str | None, str | None, str | None]:
     registry = default_fleet_dependency_path()
     if not registry.is_file():
-        return None, None
+        return None, None, None, None
     try:
         data = json.loads(registry.read_text(encoding="utf-8"))
         matches = {
-            (recipe.get("provenance_project"), dependency["contract"]["verify"].get("exact"))
+            (recipe.get("provenance_provider"), recipe.get("provenance_project"),
+             recipe.get("provenance_workflow"), dependency["contract"]["verify"].get("exact"))
             for dependency in data["dependencies"]
             for recipe in dependency.get("contract", {}).get("recipes", {}).values()
-            if recipe.get("private_catalog_url") == url
+            if recipe.get("manager") == "ctx9-component" and recipe.get("private_catalog_url") == url
+            and recipe.get("credential_binding") == PRIVATE_CREDENTIAL_BINDING
         }
         if len(matches) != 1:
-            return None, None
+            return None, None, None, None
         return matches.pop()
     except (OSError, ValueError, KeyError, TypeError, AttributeError):
         raise PreflightError("trust-policy-missing") from None
@@ -543,6 +584,13 @@ def run_component(component: dict[str, Any], mode: str) -> dict[str, Any]:
             check=False,
             capture_output=True,
             text=True,
+            # Download authority belongs to the launcher, not installed product code.
+            env={key: os.environ[key] for key in (
+                "HOME", "PATH", "TMPDIR", "SSL_CERT_FILE", "SSL_CERT_DIR", "LANG", "LC_ALL",
+                "USER", "LOGNAME", "SHELL", "XDG_RUNTIME_DIR", "XDG_DATA_HOME", "XDG_CONFIG_HOME",
+                "XDG_STATE_HOME", "XDG_CACHE_HOME", "DBUS_SESSION_BUS_ADDRESS", "DISPLAY",
+                "WAYLAND_DISPLAY", "XDG_SESSION_TYPE", "SSH_CONNECTION",
+            ) if key in os.environ} if private else None,
         )
         if completed.returncode:
             if private:
@@ -590,6 +638,8 @@ def parser() -> argparse.ArgumentParser:
     command_parser.add_argument("--private-catalog-url", help=argparse.SUPPRESS)
     command_parser.add_argument("--credential-binding", help=argparse.SUPPRESS)
     command_parser.add_argument("--provenance-project", help=argparse.SUPPRESS)
+    command_parser.add_argument("--provenance-provider", choices=("github", "gitlab"), help=argparse.SUPPRESS)
+    command_parser.add_argument("--provenance-workflow", help=argparse.SUPPRESS)
     command_parser.add_argument("--expected-version", help=argparse.SUPPRESS)
     command_parser.add_argument("--expected-source-commit", help=argparse.SUPPRESS)
     command_parser.add_argument("--expected-catalog-sha256", help=argparse.SUPPRESS)
@@ -679,11 +729,13 @@ def main(argv: list[str] | None = None) -> int:
                     raise PreflightError("invalid-release")
                 continue
             url, private_manifest = private_sources[component["id"]]
-            project, version = configured_private_policy(url)
+            provider, project, workflow, version = configured_private_policy(url)
+            provider = args.provenance_provider or provider
             project = args.provenance_project or project
+            workflow = args.provenance_workflow or workflow
             version = args.expected_version or version
-            identity = private_release_policy(url, project, version)
-            report = verify_private_release(component, private_manifest, url, identity, version)
+            policy = private_release_policy(url, project, version, provider=provider, workflow=workflow)
+            report = verify_private_release(component, private_manifest, url, policy)
             if args.expected_source_commit is not None and report["source_commit"] != args.expected_source_commit:
                 raise PreflightError("release-changed")
             if args.expected_catalog_sha256 is not None and report["catalog_sha256"] != args.expected_catalog_sha256:
