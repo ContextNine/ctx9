@@ -1,0 +1,94 @@
+name: Attest native component downloads
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact published Notenv version
+        required: true
+        type: string
+      source_commit:
+        description: Reviewed original application source commit
+        required: true
+        type: string
+      source_archive_sha256:
+        description: Reviewed corresponding-source archive checksum
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  artifact-metadata: write
+  attestations: write
+  id-token: write
+
+concurrency:
+  group: public-notenv-attestation-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  attest:
+    if: github.repository == 'ContextNine/ctx9' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        with:
+          cosign-release: v3.1.3
+      - name: Verify anonymous original installers and reviewed corresponding source
+        env:
+          COMPONENT_VERSION: ${{ inputs.version }}
+          COMPONENT_SOURCE: ${{ inputs.source_commit }}
+          SOURCE_ARCHIVE_SHA256: ${{ inputs.source_archive_sha256 }}
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, re, subprocess, urllib.request
+          from pathlib import Path
+          version, source, source_digest = (os.environ[name] for name in
+              ('COMPONENT_VERSION', 'COMPONENT_SOURCE', 'SOURCE_ARCHIVE_SHA256'))
+          assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version)
+          assert re.fullmatch(r'[a-f0-9]{40}', source) and re.fullmatch(r'[a-f0-9]{64}', source_digest)
+          prefix = f'notenv-{version}'
+          names = [f'{prefix}-{host}.tar.gz{suffix}' for host in ('linux-x86_64', 'macos-aarch64') for suffix in ('', '.sha256')]
+          names += [f'{prefix}.release.json', f'{prefix}.release.sigstore.json', f'{prefix}-source.tar.gz', f'{prefix}-downloads.json']
+          output = Path('verified-downloads')
+          output.mkdir(mode=0o700)
+          for name in names:
+              request = urllib.request.Request(f'https://github.com/ContextNine/ctx9/releases/download/notenv-v{version}/{name}')
+              with urllib.request.urlopen(request, timeout=60) as response, (output / name).open('xb') as target:
+                  total = 0
+                  while chunk := response.read(1024 * 1024):
+                      total += len(chunk)
+                      assert total <= 128 * 1024 * 1024
+                      target.write(chunk)
+          digest = lambda name: hashlib.sha256((output / name).read_bytes()).hexdigest()
+          record = json.loads((output / f'{prefix}.release.json').read_bytes())
+          assert record['signed'] is True and record['values_returned'] is False
+          assert record['machine_release']['source_commit'] == source and record['machine_release']['version'] == version
+          publication = record['publication']
+          assert publication['provider'] == 'github' and publication['repository'] == 'ContextNine/notenv'
+          assert publication['workflow_ref'] == 'ContextNine/notenv/.github/workflows/publish-machine-release.yml@refs/heads/master'
+          assert re.fullmatch(r'[a-f0-9]{40}', publication['workflow_commit'])
+          subprocess.run(['cosign', 'verify-blob', '--bundle', str(output / f'{prefix}.release.sigstore.json'),
+              '--certificate-identity', 'https://github.com/ContextNine/notenv/.github/workflows/publish-machine-release.yml@refs/heads/master',
+              '--certificate-oidc-issuer', 'https://token.actions.githubusercontent.com', '--certificate-github-workflow-sha', publication['workflow_commit'],
+              str(output / f'{prefix}.release.json')], check=True, timeout=120)
+          assert {a['name'] for a in record['machine_release']['artifacts']} == {f'{prefix}-{host}.tar.gz' for host in ('linux-x86_64', 'macos-aarch64')}
+          for artifact in record['machine_release']['artifacts']:
+              name = artifact['name']
+              assert digest(name) == artifact['sha256']
+              assert (output / (name + '.sha256')).read_text().split() == [artifact['sha256'], name]
+          assert digest(f'{prefix}-source.tar.gz') == source_digest
+          manifest = json.loads((output / f'{prefix}-downloads.json').read_bytes())
+          assert manifest['source_commit'] == source and manifest['version'] == version
+          assert manifest['artifacts'] == {name:digest(name) for name in names if name != f'{prefix}-downloads.json'}
+          print(json.dumps({'anonymous_downloads':True, 'original_signature_verified':True, 'reviewed_source_verified':True,
+              'version':version, 'source_commit':source, 'files':len(names), 'values_returned':False}))
+          PY
+      - name: Attest the verified public bytes
+        uses: actions/attest@v4
+        with:
+          subject-path: verified-downloads/*

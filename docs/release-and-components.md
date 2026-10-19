@@ -35,7 +35,7 @@ Portable components use one archive. Native components use `release.artifacts` t
 
 A public native release declares:
 
-- `repository` as its public GitHub `owner/repository`, with `tag` equal to `v<component version>`;
+- `repository` as its public GitHub `owner/repository`, with `tag` equal to `v<component version>` or `<component ID>-v<component version>` for shared release hosting;
 - a full `source_commit` and `minimum_launcher_version` naming an accepted launcher release with this capability;
 - `artifacts` containing `platform`, `architecture`, `archive_url`, `archive_sha256` and `archive_root` for each available host pair.
 
@@ -44,6 +44,17 @@ Each URL must name a credential-free HTTPS asset under that repository's exact v
 Before moving Notenv into the public catalog, complete its anonymous signed-artifact and clean-machine acceptance. Retire its private Fleet recipe/overlay entry as part of the coordinated migration, preserving unrelated private components. Private catalogs still cannot replace a public component. Source capability alone does not authorize adding an unaccepted artifact to `components.json`.
 
 The original source acceptance passed all 14 launcher tests in [hosted Test run 39006140517](https://github.com/ContextNine/ctx9/actions/runs/39006140517) at exact source `5e979f2b7466b77ec2a2dd04ad639fe6dfdb7281`. The integration journey executes selected synthetic macOS/Linux archive installers, confirms anonymous requests, and denies an unsupported pair and tampered archive before installer execution. Launcher 0.4.2 now publishes this capability and is adopted on all three registered machines, with [official-download and installed-byte acceptance](evidence/launcher-0.4.2-2026-10-18.json). Actual public Notenv native downloads and their installed custody remain separate gates; no Notenv public catalog entry is added.
+
+Shared public hosting uses the component-specific `notenv-v<version>` release,
+separate from launcher version tags. Publish original signed platform archives,
+their checksums, the original record/bundle and reviewed corresponding source.
+Do not publish private Git history, custody, retained operation ZIPs or the raw
+private image-source archive. Download consumers need no GitHub or GitLab login.
+The manual native-download attestation workflow anonymously downloads and verifies
+the original signature, source/version and reviewed source digest before issuing
+additional public GitHub attestations. It cannot publish assets, deploy or update
+a machine. Preview publication does not admit a component to the public catalog
+or stable updates.
 
 ## Private catalog overlay
 

@@ -90,7 +90,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
     def test_list_and_version(self) -> None:
         version = self.run_cli("--version")
         self.assertEqual(version.returncode, 0, version.stderr)
-        self.assertEqual(version.stdout.strip(), "ctx9 0.4.3")
+        self.assertEqual(version.stdout.strip(), "ctx9 0.4.4")
         listed = self.run_cli("list", "--json")
         self.assertEqual(listed.returncode, 0, listed.stderr)
         component_ids = {component["id"] for component in json.loads(listed.stdout)}
@@ -145,7 +145,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
             release = component["release"]
             for key in ("archive_url", "archive_sha256", "archive_root"):
                 release.pop(key)
-            release.update(source_commit="a" * 40, minimum_launcher_version=MODULE.VERSION, artifacts=[])
+            release.update(tag=f"{component['id']}-v1.0.0", source_commit="a" * 40, minimum_launcher_version=MODULE.VERSION, artifacts=[])
             downloads: dict[str, bytes] = {}
             hosts = [("macos", "aarch64"), ("linux", "x86_64")]
             for operating_system, architecture in hosts:
@@ -157,7 +157,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                 with tarfile.open(archive, "w:gz") as output:
                     output.add(source, arcname=source.name)
                 data = archive.read_bytes()
-                url = f"https://github.com/example/fake/releases/download/v1.0.0/{archive.name}"
+                url = f"https://github.com/example/fake/releases/download/{release['tag']}/{archive.name}"
                 downloads[url] = data
                 release["artifacts"].append({
                     "platform": operating_system, "architecture": architecture,
@@ -235,7 +235,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                 env={**os.environ, "PATH": os.environ.get("PATH", "")},
             )
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            self.assertEqual(installed.stdout.strip(), "ctx9 0.4.3")
+            self.assertEqual(installed.stdout.strip(), "ctx9 0.4.4")
 
     def test_public_component_operation_does_not_require_private_auth(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

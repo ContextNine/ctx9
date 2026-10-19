@@ -12,7 +12,7 @@ import subprocess
 import tarfile
 from pathlib import Path
 
-VERSION = "0.4.3"
+VERSION = "0.4.4"
 FILES = (
     "AGENTS.md",
     "LICENSE",

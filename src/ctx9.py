@@ -22,7 +22,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any, NamedTuple
 
-VERSION = "0.4.3"
+VERSION = "0.4.4"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 PREFLIGHT_STATES = {
@@ -107,7 +107,7 @@ def validate_component(component: dict[str, Any], *, private: bool) -> None:
         if not isinstance(release.get("source_commit"), str) or not is_hex(release["source_commit"], 40):
             raise LauncherError(f"{component_id}: native release requires an exact source commit")
         repository = release.get("repository")
-        if not isinstance(repository, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository) or release.get("tag") != f"v{component['version']}":
+        if not isinstance(repository, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository) or release.get("tag") not in {f"v{component['version']}", f"{component_id}-v{component['version']}"}:
             raise LauncherError(f"{component_id}: exact public repository and version tag required")
         if any(key in release for key in ("archive_url", "archive_sha256", "archive_root")):
             raise LauncherError(f"{component_id}: native release must select an exact host artifact")
