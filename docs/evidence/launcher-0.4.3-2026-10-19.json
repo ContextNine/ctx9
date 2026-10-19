@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-10-19",
+  "version": "0.4.3",
+  "source_commit": "b38b463ef648564f405969af7799e5fa82fadc9c",
+  "release_url": "https://github.com/ContextNine/ctx9/releases/tag/v0.4.3",
+  "archive_sha256": "44ea1f347d1136ca90d2ed10d436b265feeff81f2b9cdfa9c9790038b472d7b5",
+  "source_check": {"run_id": 39267754092, "conclusion": "success"},
+  "release": {"run_id": 39268055541, "conclusion": "success"},
+  "github_attestation": {
+    "verified_files": ["ctx9-0.4.3.tar.gz", "ctx9-0.4.3.tar.gz.sha256", "ctx9-0.4.3.tar.gz.release.json"],
+    "certificate_identity": "https://github.com/ContextNine/ctx9/.github/workflows/release.yml@refs/tags/v0.4.3",
+    "source_ref": "refs/tags/v0.4.3",
+    "source_and_signer_digest": "b38b463ef648564f405969af7799e5fa82fadc9c",
+    "self_hosted_runners_denied": true
+  },
+  "official_download_isolated_acceptance": {
+    "passed_machines": ["wootbook", "workermacair"],
+    "platforms": ["linux-x86_64", "macos-arm64"],
+    "fresh_install": true,
+    "doctor": true,
+    "second_run_noop": true,
+    "home_environment_preserved": true,
+    "daily_installations_changed": false,
+    "mattbook": "Pending: both normal SSH attempts timed out; no installer started."
+  },
+  "daily_adoption": {
+    "state": "pending-primary-owned-fleet",
+    "launcher_version": "0.4.3",
+    "fleet_version": "0.2.19",
+    "canonical_desired_pins_saved": true,
+    "vault_git_push_or_primary_visibility_verified": false,
+    "machines_changed": []
+  },
+  "notenv_native_release_or_adoption_proven": false,
+  "values_returned": false
+}

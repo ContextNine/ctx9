@@ -166,5 +166,11 @@ against those extracted official bytes on both operating systems. One
 starter-registry worker case remains its configured skip on each OS. See the
 [receipt](evidence/fleet-0.2.19-2026-10-19.json).
 
-Launcher 0.4.3 publication/download acceptance and primary-owned adoption remain
-separate gates. This catalog change does not install or adopt Notenv 3.0.0.
+Launcher 0.4.3 is published. Its official archive, checksum and source record
+pass exact tag/source/workflow attestation verification. Anonymous independent
+Linux and macOS downloads have identical bytes and pass fresh installation,
+verification and repeat-install no-op. Mattbook's SSH connection times out before
+its own check. Canonical desired pins are saved, but primary visibility, Vault
+Git completion and primary-owned Fleet adoption remain pending. See the
+[Launcher receipt](evidence/launcher-0.4.3-2026-10-19.json). Neither this
+publication nor its isolated acceptance installs or adopts Notenv 3.0.0.
