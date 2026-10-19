@@ -54,6 +54,13 @@ This is catalog admission, not stable auto-update eligibility, production or
 daily machine adoption. Mac native replacement and service/consumer checks
 remain explicit cutover gates. Newer Notenv 4.0.0 source is not included.
 
+The official Launcher 0.4.4 release now passes its exact tag/source/workflow
+attestation checks for all three files. Independent anonymous Linux and macOS
+downloads match archive `4f81b988...386472d` and pass temporary fresh installation,
+doctor, repeat no-op and installed public Notenv catalog checks. Mattbook is
+offline, so primary-owned adoption and its target acceptance remain pending.
+See the [official release receipt](evidence/launcher-0.4.4-2026-10-19.json).
+
 The original source acceptance passed all 14 launcher tests in [hosted Test run 39006140517](https://github.com/ContextNine/ctx9/actions/runs/39006140517) at exact source `5e979f2b7466b77ec2a2dd04ad639fe6dfdb7281`. The integration journey executes selected synthetic macOS/Linux archive installers, confirms anonymous requests, and denies an unsupported pair and tampered archive before installer execution. Launcher 0.4.2 now publishes this capability and is adopted on all three registered machines, with [official-download and installed-byte acceptance](evidence/launcher-0.4.2-2026-10-18.json). Actual public Notenv native downloads and their installed custody remain separate gates; no Notenv public catalog entry is added.
 
 Shared public hosting uses the component-specific `notenv-v<version>` release,

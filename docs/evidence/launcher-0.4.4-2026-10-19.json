@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-10-19",
+  "version": "0.4.4",
+  "source_commit": "26c975f08784c7dc47185dcfa5edd959ad0463d2",
+  "release_url": "https://github.com/ContextNine/ctx9/releases/tag/v0.4.4",
+  "archive_sha256": "4f81b988311de003c2f2c72110de888ba056e134388a9db29a3428475386472d",
+  "source_check": {"run_id": 39308662233, "conclusion": "success", "both_platforms": true},
+  "release": {"run_id": 39308812680, "conclusion": "success"},
+  "github_attestation": {
+    "all_three_release_files_verified": true,
+    "certificate_identity": "https://github.com/ContextNine/ctx9/.github/workflows/release.yml@refs/tags/v0.4.4",
+    "source_ref": "refs/tags/v0.4.4",
+    "source_and_signer_digest": "26c975f08784c7dc47185dcfa5edd959ad0463d2",
+    "self_hosted_runners_denied": true
+  },
+  "official_download_isolated_acceptance": {
+    "machines": ["wootbook", "workermacair"],
+    "independent_anonymous_downloads_match": true,
+    "fresh_install": true,
+    "doctor": true,
+    "repeat_install_noop": true,
+    "installed_cli_and_public_notenv_catalog_verified": true,
+    "home_preserved": true,
+    "daily_installations_changed": false,
+    "mattbook": "Offline; no installation attempted"
+  },
+  "notenv_version": "3.0.0",
+  "notenv_native_acceptance_run": 39307686536,
+  "daily_fleet_adoption": "pending primary-owned rollout",
+  "production_changed": false,
+  "notenv_stable_auto_update_eligibility_changed": false,
+  "values_returned": false
+}
