@@ -43,6 +43,17 @@ Each URL must name a credential-free HTTPS asset under that repository's exact v
 
 Before moving Notenv into the public catalog, complete its anonymous signed-artifact and clean-machine acceptance. Retire its private Fleet recipe/overlay entry as part of the coordinated migration, preserving unrelated private components. Private catalogs still cannot replace a public component. Source capability alone does not authorize adding an unaccepted artifact to `components.json`.
 
+Launcher 0.4.4 admits the original Notenv 3.0.0 archives from public
+`notenv-v3.0.0` hosting. Anonymous downloads, original signatures, temporary
+installation/doctor/repeat and exact CLI identity pass on all three fleet machines.
+The actual published Linux archive also passes enrollment, protected execution,
+restart and restored-server execution in hosted run `39307686536`. Public
+attestations bind all eight release files to the reviewed hosting workflow.
+See the [acceptance receipt](evidence/notenv-public-3.0.0-2026-10-19.json).
+This is catalog admission, not stable auto-update eligibility, production or
+daily machine adoption. Mac native replacement and service/consumer checks
+remain explicit cutover gates. Newer Notenv 4.0.0 source is not included.
+
 The original source acceptance passed all 14 launcher tests in [hosted Test run 39006140517](https://github.com/ContextNine/ctx9/actions/runs/39006140517) at exact source `5e979f2b7466b77ec2a2dd04ad639fe6dfdb7281`. The integration journey executes selected synthetic macOS/Linux archive installers, confirms anonymous requests, and denies an unsupported pair and tampered archive before installer execution. Launcher 0.4.2 now publishes this capability and is adopted on all three registered machines, with [official-download and installed-byte acceptance](evidence/launcher-0.4.2-2026-10-18.json). Actual public Notenv native downloads and their installed custody remain separate gates; no Notenv public catalog entry is added.
 
 Shared public hosting uses the component-specific `notenv-v<version>` release,
@@ -65,7 +76,7 @@ discover the catalog from their exact dependency registry and expose the narrow 
 ```bash
 ctx9 auth verify --json
 ctx9 list
-ctx9 install notenv
+ctx9 install private-product
 ```
 
 Each private release entry must name an exact source commit, minimum launcher version, and one checksummed

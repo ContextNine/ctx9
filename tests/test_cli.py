@@ -101,6 +101,7 @@ print(json.dumps({'component': 'fake', 'ready': True, 'changed': not a.verify}))
                 "codefoldersync",
                 "publisher",
                 "testimonials",
+                "notenv",
                 "fleet",
                 "vault",
             },

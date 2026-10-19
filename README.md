@@ -25,6 +25,7 @@ ctx9 install codex-repo-sync
 ctx9 install codefoldersync
 ctx9 install publisher
 ctx9 install testimonials
+ctx9 install notenv
 ctx9 install fleet
 ctx9 install vault
 ctx9 update
@@ -33,7 +34,7 @@ ctx9 doctor
 
 `components.json` is the release catalog. Every component remains independently versioned and owns its installer and doctor. `ctx9 update` installs the exact component versions approved by the installed launcher catalog; updating the launcher provides a newer catalog.
 
-On an enrolled fleet machine, `ctx9 list` also discovers Notenv from the exact private dependency registry. `ctx9 auth` keeps its read-only GitLab credential in an internal helper, and `ctx9 install notenv` authenticates transparently. The public catalog never gains private repository metadata. See [the release contract](docs/release-and-components.md).
+Notenv 3.0.0 downloads from the public catalog without GitHub or GitLab credentials. Machine enrollment and authorization to consume protected configuration are separate. Existing managed installations require their reviewed server/client cutover and primary-owned Fleet update; publishing this launcher does not change those installations. Unrelated private components retain their separate catalog and credential custody. See [the release contract](docs/release-and-components.md).
 
 The catalog includes Fleet, Context Vault, [Codex Repo Sync](https://github.com/ContextNine/codex-repo-sync), [CodeFolderSync](https://github.com/ContextNine/codefoldersync), the dependency-free [Publisher CLI](https://github.com/ContextNine/publisher), and the source-stamped Testimonials management CLI. The commands have distinct jobs: `ctx9` manages components on one machine, `fleet` converges approved state across machines, and `vault` manages Vault content and upgrades.
 

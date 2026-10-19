@@ -89,6 +89,44 @@
       "documentation": "https://testimonials.ctx9.com"
     },
     {
+      "id": "notenv",
+      "name": "Notenv",
+      "version": "3.0.0",
+      "platforms": ["macos", "linux"],
+      "architectures": ["aarch64", "x86_64"],
+      "release": {
+        "repository": "ContextNine/ctx9",
+        "tag": "notenv-v3.0.0",
+        "source_commit": "420261d5de273530e3913e515af0f13f4c5bd9cd",
+        "minimum_launcher_version": "0.4.4",
+        "artifacts": [
+          {
+            "platform": "linux",
+            "architecture": "x86_64",
+            "archive_url": "https://github.com/ContextNine/ctx9/releases/download/notenv-v3.0.0/notenv-3.0.0-linux-x86_64.tar.gz",
+            "archive_sha256": "e76a5d2c0ca4f5d3d05c02e38b08d116a4fdc1434bf8e38484f1e95237a4d769",
+            "archive_root": "notenv-3.0.0-linux-x86_64"
+          },
+          {
+            "platform": "macos",
+            "architecture": "aarch64",
+            "archive_url": "https://github.com/ContextNine/ctx9/releases/download/notenv-v3.0.0/notenv-3.0.0-macos-aarch64.tar.gz",
+            "archive_sha256": "a260745316cd3771c64c09c0de6f763679b5555aa312b961a6bdaf5bcaa9460f",
+            "archive_root": "notenv-3.0.0-macos-aarch64"
+          }
+        ]
+      },
+      "installer": {
+        "path": "scripts/install.py",
+        "install_args": [],
+        "doctor_args": ["--verify"],
+        "rollback_args": ["--rollback"],
+        "uninstall_args": ["--uninstall"]
+      },
+      "provides": ["command:notenv", "command:notenv-enroll", "service:notenv-broker"],
+      "documentation": "https://github.com/ContextNine/ctx9/releases/tag/notenv-v3.0.0"
+    },
+    {
       "id": "fleet",
       "name": "Fleet",
       "version": "0.2.19",
