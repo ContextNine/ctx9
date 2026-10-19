@@ -22,7 +22,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any, NamedTuple
 
-VERSION = "0.4.2"
+VERSION = "0.4.3"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 PREFLIGHT_STATES = {

@@ -149,3 +149,22 @@ all 33 Fleet runtime files match the official archives on each machine, and
 Fleet doctors pass. The [adoption receipt](evidence/launcher-0.4.2-2026-10-18.json)
 records the updater's stale final-report limitation. This does not accept or
 adopt a new Notenv native release.
+
+## Fleet 0.2.19 catalog selection
+
+Launcher 0.4.3 selects Fleet 0.2.19 from Skill Problem System v0.3.3,
+source `6bce4b5d6199665d85950f23ef51b67b201901f2`. Fleet can select an explicit
+new signing policy in the same exact-version adoption transaction, without
+temporarily changing the policy for the retained old version. The public
+component/archive format and existing private Notenv overlay remain unchanged.
+
+The three official Fleet release files pass exact source/tag/workflow GitHub
+attestation verification. Anonymous Linux download and the independent Mac
+download have the same pinned archive hash. Its existing fresh-install,
+verification, repeated-install, runtime-upgrade and uninstall journeys pass
+against those extracted official bytes on both operating systems. One
+starter-registry worker case remains its configured skip on each OS. See the
+[receipt](evidence/fleet-0.2.19-2026-10-19.json).
+
+Launcher 0.4.3 publication/download acceptance and primary-owned adoption remain
+separate gates. This catalog change does not install or adopt Notenv 3.0.0.

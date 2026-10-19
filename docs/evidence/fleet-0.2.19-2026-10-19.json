@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "recorded_on": "2026-10-19",
+  "component": "fleet",
+  "component_version": "0.2.19",
+  "source_product_version": "0.3.3",
+  "source_commit": "6bce4b5d6199665d85950f23ef51b67b201901f2",
+  "checked_feature_commit": "5f1dcc56f8a5cfde9bb0896d81292f8d9ebbf064",
+  "owner_approved_public_snapshot_release": true,
+  "archive_sha256": "3364b76dc2175804bc19db857346a48b20624f15bd13f8c25cb5ab74c4ca4ea1",
+  "release_run_id": 39266975330,
+  "release_conclusion": "success",
+  "check_run_id": 39266974809,
+  "check_conclusion": "success",
+  "exact_source_tag_workflow_attestations": {
+    "archive": "verified",
+    "checksum": "verified",
+    "release_record": "verified"
+  },
+  "official_archive_acceptance": {
+    "linux": {"download": "anonymous", "existing_installation_journeys": 5, "skipped": 1, "result": "success"},
+    "macos": {"download": "independent", "existing_installation_journeys": 5, "skipped": 1, "result": "success"},
+    "fresh_install_verify_repeat_and_uninstall": true,
+    "runtime_upgrade_preserves_source_and_command_root": true
+  },
+  "daily_installations_changed": false,
+  "notenv_adopted": false,
+  "values_returned": false
+}

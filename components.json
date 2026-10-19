@@ -91,14 +91,14 @@
     {
       "id": "fleet",
       "name": "Fleet",
-      "version": "0.2.18",
+      "version": "0.2.19",
       "platforms": ["linux", "macos"],
       "architectures": ["aarch64", "x86_64"],
       "release": {
         "repository": "ContextNine/the-skill-problem-system",
-        "tag": "v0.3.2",
-        "archive_url": "https://github.com/ContextNine/the-skill-problem-system/releases/download/v0.3.2/the-skill-problem-system-0.3.2.tar.gz",
-        "archive_sha256": "dae1367eba4d1d93d8a5750e506f6437822adcaaaa8f23fd6f0973caea65c698",
+        "tag": "v0.3.3",
+        "archive_url": "https://github.com/ContextNine/the-skill-problem-system/releases/download/v0.3.3/the-skill-problem-system-0.3.3.tar.gz",
+        "archive_sha256": "3364b76dc2175804bc19db857346a48b20624f15bd13f8c25cb5ab74c4ca4ea1",
         "archive_root": "."
       },
       "installer": {
