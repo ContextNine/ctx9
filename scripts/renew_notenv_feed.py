@@ -41,7 +41,7 @@ def safe_file(root, name):
 def prepare(root):
     assert os.environ["GITHUB_REPOSITORY"] == "ContextNine/ctx9"
     assert os.environ["GITHUB_REF"] == "refs/heads/master"
-    root.mkdir(mode=0o700)
+    root.mkdir(mode=0o700, parents=True)
     archive = root / "publisher.tar.gz"
     with urllib.request.urlopen(SOURCE_URL, timeout=60) as response, archive.open("xb") as output:
         total = 0
