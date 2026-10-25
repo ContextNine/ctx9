@@ -1,0 +1,310 @@
+{
+  "bootstrap_release": [
+    {
+      "archive": "ctx9-private-read-bootstrap-729f5db99d039993fe37ec0c2555c69725ad8043-macos-arm64.tar.gz",
+      "archive_sha256": "57c6cf78b33ce7c596ec2d55f2420b1f2ca139ae1b95c58d4a5a02b71f44068f",
+      "archive_size": 68414,
+      "artifact": "ctx9-private-read-bootstrap",
+      "custody": "macos-hardware-sealed",
+      "embedded_credentials": false,
+      "entrypoint": "libexec/ctx9/private-read.py",
+      "helper_sha256": "08bb559ebf4c8d2c8b404bdaece787c77222c010f939afe3bc04fae32799f52b",
+      "minimum_macos_version": "13.5",
+      "native_sha256": "68a832d92e8279e29fc8abf8d0db46d69d586f4d0240f51e8050e5cbc6dc1427",
+      "native_signing": {
+        "cdhash": "5acd4fbdb50d4d40db38fadc994f27d3e8f977e7",
+        "designated_requirement": "identifier \"com.ctx9.bootstrap.private-read\" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = A8U7HF3YVS",
+        "entitlements": "none",
+        "hardened_runtime": true,
+        "identifier": "com.ctx9.bootstrap.private-read",
+        "path": "libexec/ctx9/private-read-owner",
+        "team_identifier": "A8U7HF3YVS"
+      },
+      "package_verification_runtime": "npm",
+      "required_runtime": "python>=3.9",
+      "schema_version": 1,
+      "source_commit": "729f5db99d039993fe37ec0c2555c69725ad8043",
+      "target": "macos-arm64"
+    },
+    {
+      "archive": "ctx9-private-read-bootstrap-729f5db99d039993fe37ec0c2555c69725ad8043-linux-portable.tar.gz",
+      "archive_sha256": "784ac1434eeae7d2bb78439cc436ae49a45aeb4ed70065b4dfa42fb47e4712e0",
+      "archive_size": 16419,
+      "artifact": "ctx9-private-read-bootstrap",
+      "custody": "linux-secret-service",
+      "embedded_credentials": false,
+      "entrypoint": "libexec/ctx9/private-read.py",
+      "helper_sha256": "08bb559ebf4c8d2c8b404bdaece787c77222c010f939afe3bc04fae32799f52b",
+      "package_verification_runtime": "npm",
+      "required_runtime": "python>=3.9",
+      "schema_version": 1,
+      "source_commit": "729f5db99d039993fe37ec0c2555c69725ad8043",
+      "target": "linux-portable"
+    }
+  ],
+  "builds": {
+    "image_build": {
+      "artifact": {
+        "digest": "sha256:407da9ce50be27450c0eb628199e1cffc3da7d659aaec1a9292108d4dc0747ec",
+        "id": 676407671,
+        "name": "notenv-729f5db99d039993fe37ec0c2555c69725ad8043-40244163004-1",
+        "size_in_bytes": 5293066,
+        "storage": "github-release"
+      },
+      "run_attempt": "1",
+      "run_id": "40244163004"
+    },
+    "native_build": {
+      "artifact": {
+        "digest": "sha256:fa5916b53f92e2f409fdbf62eef1718927dda11c752fdf773d05ee0cb7cf46ba",
+        "id": 676406028,
+        "name": "native-candidate-release-729f5db99d039993fe37ec0c2555c69725ad8043-40244163024-1",
+        "size_in_bytes": 100255928,
+        "storage": "github-release"
+      },
+      "run_attempt": "1",
+      "run_id": "40244163024"
+    }
+  },
+  "machine_release": {
+    "artifacts": [
+      {
+        "architecture": "x86_64",
+        "name": "notenv-4.0.4-linux-x86_64.tar.gz",
+        "platform": "linux",
+        "sha256": "5923da37ea068abcdcddde1afceab5ebd087b3680d6aeb60724a72a6d8c2d271",
+        "size": 52729980
+      },
+      {
+        "architecture": "aarch64",
+        "name": "notenv-4.0.4-macos-aarch64.tar.gz",
+        "platform": "macos",
+        "sha256": "1b4c9b576d04b47f8e702ac6ef6717648a932cdde860f0b20893e9318dce1225",
+        "size": 48346111
+      }
+    ],
+    "delivery_project": "ctx9/notenv",
+    "delivery_project_id": 85404252,
+    "minimum_launcher_version": "0.4.2",
+    "oci_component": "notenv",
+    "package": "notenv-machine",
+    "platforms": [
+      {
+        "architecture": "aarch64",
+        "platform": "macos"
+      },
+      {
+        "architecture": "x86_64",
+        "platform": "linux"
+      }
+    ],
+    "product": "notenv",
+    "rollback": {
+      "broad_management_credential_required": false,
+      "retained_versions": 2,
+      "source_checkout_required": false
+    },
+    "schema_version": 1,
+    "source_commit": "729f5db99d039993fe37ec0c2555c69725ad8043",
+    "source_repository": "https://github.com/ContextNine/notenv",
+    "values_returned": false,
+    "version": "4.0.4"
+  },
+  "machine_security": [
+    {
+      "artifact": {
+        "architecture": "x86_64",
+        "name": "notenv-4.0.4-linux-x86_64.tar.gz",
+        "platform": "linux",
+        "sha256": "5923da37ea068abcdcddde1afceab5ebd087b3680d6aeb60724a72a6d8c2d271"
+      },
+      "generated_at": "2026-10-25T23:25:05.793264+00:00",
+      "inventory_components": 106,
+      "passed": true,
+      "policy": {
+        "blocking_fix_state": "fixed",
+        "blocking_severities": [
+          "Critical",
+          "High"
+        ],
+        "database_max_age": "24h",
+        "scanner": "grype",
+        "scanner_archive_sha256": "3fa2dc4b924621ab65404cf08d0b8438d896d80ab949c9d5a4ca283c36004c9b",
+        "schema_version": 1,
+        "targets": [
+          "packaged-files",
+          "sbom"
+        ],
+        "version": "0.119.0"
+      },
+      "policy_sha256": "39d005bb943f4a7935b4e8970a7f525227e9d055032f4767a4a4ae01a4e53b09",
+      "sbom_sha256": "54afb98df094eaea0b56a3fd91fe910eb6e732d39e739f28c1f1411a5d10ba85",
+      "scans": [
+        {
+          "blocking_matches": 0,
+          "match_counts": {},
+          "passed": true,
+          "report_sha256": "1f5e5f3bc512d12319c2936d6aa1d86061513bb6a8cf63f0e9490510ae3d494c",
+          "scanner_version": "0.119.0",
+          "target": "packaged-files"
+        },
+        {
+          "blocking_matches": 0,
+          "match_counts": {},
+          "passed": true,
+          "report_sha256": "0d0bb844f5f7d4a8b8cd9ed299ea35276743d864d3dd80448682b0c87902eddb",
+          "scanner_version": "0.119.0",
+          "target": "sbom"
+        }
+      ],
+      "schema_version": 1,
+      "source_commit": "729f5db99d039993fe37ec0c2555c69725ad8043",
+      "values_returned": false,
+      "version": "4.0.4"
+    },
+    {
+      "artifact": {
+        "architecture": "aarch64",
+        "name": "notenv-4.0.4-macos-aarch64.tar.gz",
+        "platform": "macos",
+        "sha256": "1b4c9b576d04b47f8e702ac6ef6717648a932cdde860f0b20893e9318dce1225"
+      },
+      "generated_at": "2026-10-25T23:24:12.848492+00:00",
+      "inventory_components": 106,
+      "passed": true,
+      "policy": {
+        "blocking_fix_state": "fixed",
+        "blocking_severities": [
+          "Critical",
+          "High"
+        ],
+        "database_max_age": "24h",
+        "scanner": "grype",
+        "scanner_archive_sha256": "3fa2dc4b924621ab65404cf08d0b8438d896d80ab949c9d5a4ca283c36004c9b",
+        "schema_version": 1,
+        "targets": [
+          "packaged-files",
+          "sbom"
+        ],
+        "version": "0.119.0"
+      },
+      "policy_sha256": "39d005bb943f4a7935b4e8970a7f525227e9d055032f4767a4a4ae01a4e53b09",
+      "sbom_sha256": "7980144c9f8e5af20ab14d488b48bd5831603cbb25e3658de14e5df37e9bbb4c",
+      "scans": [
+        {
+          "blocking_matches": 0,
+          "match_counts": {},
+          "passed": true,
+          "report_sha256": "4210172817b7e0f296cbd2b3a861af6b901099106b9a6a4fbc088733eb05e872",
+          "scanner_version": "0.119.0",
+          "target": "packaged-files"
+        },
+        {
+          "blocking_matches": 0,
+          "match_counts": {},
+          "passed": true,
+          "report_sha256": "33f64720aaaeb90785da69ef37b6512a95268b5571c7b26b67920ba9bf5dd627",
+          "scanner_version": "0.119.0",
+          "target": "sbom"
+        }
+      ],
+      "schema_version": 1,
+      "source_commit": "729f5db99d039993fe37ec0c2555c69725ad8043",
+      "values_returned": false,
+      "version": "4.0.4"
+    }
+  ],
+  "oci_release": {
+    "build": {
+      "compute": "blacksmith",
+      "provider": "github",
+      "repository": "ContextNine/notenv",
+      "run_attempt": "1",
+      "run_id": "40244163004"
+    },
+    "component": "notenv",
+    "environment_contract_digest": "375874b9d4915b55524ddd3db16da3c9a2a3cb34e3e16600cc500b8735ba47a7",
+    "image": "registry.gitlab.com/ctx9/notenv@sha256:614ea50720858154c53108f1d32f71ae2081845cea9ea01ec2692f659ab9ef44",
+    "production_promoted": false,
+    "sbom": {
+      "file": "sbom.cdx.json",
+      "sha256": "0e67f2cf576b598ac8132e8b3862562eaf9a247d16312c0c0de60486804c785c"
+    },
+    "schema_version": 1,
+    "signed": true,
+    "source_archive": {
+      "file": "source.tar.gz",
+      "sha256": "822e96b9770b51015ed760d681d2137f05a9adf4301520777e104c69565282b3"
+    },
+    "source_commit": "729f5db99d039993fe37ec0c2555c69725ad8043"
+  },
+  "private_catalog": {
+    "catalog_kind": "private-overlay",
+    "components": [
+      {
+        "architectures": [
+          "aarch64",
+          "x86_64"
+        ],
+        "documentation": "https://github.com/ContextNine/notenv/blob/729f5db99d039993fe37ec0c2555c69725ad8043/docs/new-machine-install.md",
+        "id": "notenv",
+        "installer": {
+          "doctor_args": [
+            "--verify"
+          ],
+          "install_args": [],
+          "path": "scripts/install.py",
+          "rollback_args": [
+            "--rollback"
+          ],
+          "uninstall_args": [
+            "--uninstall"
+          ]
+        },
+        "name": "Notenv",
+        "platforms": [
+          "macos",
+          "linux"
+        ],
+        "provides": [
+          "command:notenv",
+          "command:notenv-enroll",
+          "service:notenv-broker"
+        ],
+        "release": {
+          "artifacts": [
+            {
+              "architecture": "x86_64",
+              "archive_root": "notenv-4.0.4-linux-x86_64",
+              "archive_sha256": "5923da37ea068abcdcddde1afceab5ebd087b3680d6aeb60724a72a6d8c2d271",
+              "archive_url": "https://gitlab.com/api/v4/projects/85404252/packages/generic/notenv-machine/4.0.4/notenv-4.0.4-linux-x86_64.tar.gz",
+              "platform": "linux"
+            },
+            {
+              "architecture": "aarch64",
+              "archive_root": "notenv-4.0.4-macos-aarch64",
+              "archive_sha256": "1b4c9b576d04b47f8e702ac6ef6717648a932cdde860f0b20893e9318dce1225",
+              "archive_url": "https://gitlab.com/api/v4/projects/85404252/packages/generic/notenv-machine/4.0.4/notenv-4.0.4-macos-aarch64.tar.gz",
+              "platform": "macos"
+            }
+          ],
+          "minimum_launcher_version": "0.4.2",
+          "provenance_url": "https://gitlab.com/api/v4/projects/85404252/packages/generic/notenv-machine/4.0.4/notenv-4.0.4.release.sigstore.json",
+          "source_commit": "729f5db99d039993fe37ec0c2555c69725ad8043"
+        },
+        "version": "4.0.4"
+      }
+    ],
+    "credential_binding": "ctx9-gitlab-group-read",
+    "schema_version": 1
+  },
+  "publication": {
+    "provider": "github",
+    "repository": "ContextNine/notenv",
+    "workflow_commit": "02dbac7b9942ab40db3b51a8ffe744ec166116ea",
+    "workflow_ref": "ContextNine/notenv/.github/workflows/publish-machine-release.yml@refs/heads/master"
+  },
+  "schema_version": 1,
+  "signed": true,
+  "values_returned": false
+}
