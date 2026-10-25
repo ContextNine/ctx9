@@ -1,0 +1,40 @@
+name: Renew admitted Notenv stable feed
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */12 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notenv-stable-renewal
+  cancel-in-progress: false
+
+jobs:
+  renew:
+    if: github.repository == 'ContextNine/ctx9' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: notenv-stable
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 26.12.1
+      - run: npm install --global --ignore-scripts pnpm@11.22.0
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
+        with:
+          cosign-release: v3.1.3
+      - name: Authenticate original admission and prepare only its renewal
+        run: python3 scripts/renew_notenv_feed.py prepare
+      - name: Renew signed metadata and atomically advance the public data branch
+        env:
+          NOTENV_TUF_ONLINE_KEYS: ${{ secrets.NOTENV_TUF_ONLINE_KEYS }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/renew_notenv_feed.py publish
