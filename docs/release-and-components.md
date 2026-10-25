@@ -76,6 +76,19 @@ or stable updates.
 
 ## Private catalog overlay
 
+Launcher 0.4.5 permits an explicitly selected private component to share an ID
+with a public catalog entry only when the caller supplies the private catalog
+URL, component ID and exact expected version. The selected private record must
+still pass signer policy, source/version, catalog and host-archive verification
+before installation. A missing private component fails instead of falling back
+to the public entry. Automatic catalog discovery retains collision refusal.
+This supports a managed major-version cutover while the public catalog remains
+pinned to its previously accepted release.
+The hosted acceptance jobs retain their outcomes in authenticated job logs;
+they no longer duplicate `dist/` into the exhausted Actions artifact allowance.
+The official release workflow still attests and publishes its original archive,
+checksum and release record.
+
 Private products use a separate value-free catalog with `catalog_kind: private-overlay` and the exact
 `ctx9-gitlab-group-read` credential binding. The public catalog remains unchanged. Enrolled fleet machines
 discover the catalog from their exact dependency registry and expose the narrow credential only to `ctx9`:

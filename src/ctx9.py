@@ -22,7 +22,7 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 from typing import Any, NamedTuple
 
-VERSION = "0.4.4"
+VERSION = "0.4.5"
 PRIVATE_CREDENTIAL_BINDING = "ctx9-gitlab-group-read"
 PRIVATE_AUTH_GUARD = "CTX9_PRIVATE_AUTH_READY"
 PREFLIGHT_STATES = {
@@ -712,6 +712,14 @@ def main(argv: list[str] | None = None) -> int:
         private_sources = {}
         for url, binding in catalogs:
             private_manifest = load_private_manifest(url, binding)
+            # A deliberate exact release selection is separate from catalog discovery.
+            # It still passes the private signature, source and version checks below.
+            if args.private_catalog_url and getattr(args, "component", None) and args.expected_version:
+                if args.component not in {item["id"] for item in private_manifest["components"]}:
+                    raise PreflightError("invalid-release")
+                manifest = {**manifest, "components": [
+                    item for item in manifest["components"] if item["id"] != args.component
+                ]}
             for item in private_manifest["components"]:
                 private_sources[item["id"]] = (url, private_manifest)
             manifest = merge_manifests(manifest, private_manifest)

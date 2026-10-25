@@ -82,6 +82,12 @@ class PrivateReleaseJourney(unittest.TestCase):
                 self.assertFalse(report["archive_verified"])
                 self.assertEqual(report["source_commit"], "a" * 40)
                 catalog_digest = report["catalog_sha256"]
+                # The explicit signed selection can upgrade a publicly listed product.
+                listed = [str(public) if arg == str(empty) else arg for arg in argv]
+                code, report = invoke(arguments=listed)
+                self.assertEqual(code, 0)
+                self.assertTrue(report["trust_verified"])
+                self.assertEqual(report["source_commit"], "a" * 40)
                 with mock.patch.object(MODULE, "download", side_effect=lambda url, destination, **kwargs: destination.write_bytes(Path(archive["archive_url"].removeprefix("file://")).read_bytes())):
                     code, report = invoke("install")
                     self.assertEqual(code, 0)
@@ -93,6 +99,7 @@ class PrivateReleaseJourney(unittest.TestCase):
                 documents[base + "components.json"] = json.dumps(changed).encode()
                 with mock.patch.object(MODULE, "run_component", side_effect=AssertionError("untrusted installer executed")):
                     self.assertEqual(invoke()[1]["state"], "trust-rejected")
+                    self.assertEqual(invoke(arguments=listed)[1]["state"], "trust-rejected")
                 documents[base + "components.json"] = json.dumps(manifest).encode()
                 # A valid new signature under the same version is not the reviewed release.
                 pinned = [*argv, "--expected-source-commit", "a" * 40, "--expected-catalog-sha256", catalog_digest]
