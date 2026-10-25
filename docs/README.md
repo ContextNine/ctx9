@@ -1,7 +1,6 @@
 # CTX9 launcher documentation
 
-- [Notenv stable feed hosting and renewal](notenv-stable-hosting.md)
-
+- [Notenv stable feed hosting and renewal](notenv-stable-hosting.md): admitted 4.0.4, verified generation-4 renewal and independent production trust.
 - [Release and component contract, including public native archives](release-and-components.md)
 - [Public Notenv 3.0.0 catalog acceptance](evidence/notenv-public-3.0.0-2026-10-19.json)
 - [Official Launcher 0.4.4 download acceptance](evidence/launcher-0.4.4-2026-10-19.json)

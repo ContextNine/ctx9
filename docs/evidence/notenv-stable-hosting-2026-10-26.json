@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-26",
+  "feed": "https://raw.githubusercontent.com/ContextNine/ctx9/notenv-stable/",
+  "admitted_release": "4.0.4",
+  "application_source": "729f5db99d039993fe37ec0c2555c69725ad8043",
+  "admission_run": 40245527495,
+  "native_manual_acceptance_run": 40245002065,
+  "admission_commit": "792d7a77108aac1d2f174d2e14eece69c2ab72eb",
+  "renewal": {
+    "commit": "30de046540e0babeacd0045d1c42e2260f89438e",
+    "renewal": {
+      "daily_installation_changed": false,
+      "kind": "notenv-stable-renewal",
+      "operation": "admit",
+      "previous_public_commit": "792d7a77108aac1d2f174d2e14eece69c2ab72eb",
+      "production_deployed": false,
+      "run_id": 40245715038,
+      "schema_version": 1,
+      "timestamp_sha256": "9f5d57513e55ca95f1a1ee61d0ca8958e909ad2bc02479bcd00fd9479473d242",
+      "values_returned": false
+    },
+    "timestamp": {
+      "_type": "timestamp",
+      "spec_version": "1.0.0",
+      "version": 4,
+      "expires": "2026-10-26T23:39:29.861Z",
+      "meta": {
+        "snapshot.json": {
+          "version": 4,
+          "length": 471,
+          "hashes": {
+            "sha256": "525431cd8df3264df67e9637272a1234d05a203c390c0394a57f47ed235c89d8"
+          }
+        }
+      }
+    },
+    "values_returned": false
+  },
+  "client_readback": {
+    "timestamp_version": 4,
+    "state": "available",
+    "checked_at": "2026-10-25T23:44:37.489Z",
+    "version": "4.0.4",
+    "source_commit": "729f5db99d039993fe37ec0c2555c69725ad8043",
+    "sequence": 1,
+    "platforms": [
+      "linux-x64",
+      "macos-arm64"
+    ],
+    "values_returned": false
+  },
+  "production_root_refusals": {
+    "kind": "production-root-metadata-refusal",
+    "verified_feed_commit": "30de046540e0babeacd0045d1c42e2260f89438e",
+    "accepted_timestamp_version": 4,
+    "admitted_version": "4.0.4",
+    "official_bootstrap_asset_used": true,
+    "signed_older_generation_refused": true,
+    "altered_signature_body_refused": true,
+    "journals_or_replay_state_deleted": false,
+    "network": "isolated-loopback-copy-of-original-public-signed-bytes",
+    "daily_installation_changed": false,
+    "production_deployed": false,
+    "values_returned": false
+  },
+  "new_admission_by_hosting": false,
+  "acceptance_expiry_extended": false,
+  "actions_artifact_storage_used": false,
+  "budget_increased": false,
+  "launcher_catalog_changed": false,
+  "daily_installation_changed": false,
+  "production_deployed": false,
+  "values_returned": false
+}
