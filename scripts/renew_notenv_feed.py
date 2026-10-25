@@ -114,6 +114,7 @@ def prepare(root):
 def sign_and_publish(root):
     base = json_file(root / "base.json")
     source, feed = root / "notenv-public-source", root / "feed"
+    publication_token = os.environ.pop("GITHUB_TOKEN")
     material = os.environ.pop("NOTENV_TUF_ONLINE_KEYS")
     run("pnpm", "exec", "tsx", "scripts/publish-stable-machine-update.ts",
         str((root / "inputs/request.json").resolve()), str(feed.resolve()), str((root / "prepared").resolve()),
@@ -132,7 +133,7 @@ def sign_and_publish(root):
     (feed / "renewal.json").write_text(json.dumps(receipt, sort_keys=True))
     run("git", "-C", str(feed), "add", "metadata", "renewal.json", *(["targets"] if (feed / "targets").exists() else []))
     run("git", "-C", str(feed), "-c", "user.name=CTX9 Release", "-c", "user.email=release@users.noreply.github.com", "commit", "-m", "chore(notenv): renew admitted stable metadata")
-    auth = base64.b64encode(("x-access-token:" + os.environ.pop("GITHUB_TOKEN")).encode()).decode()
+    auth = base64.b64encode(("x-access-token:" + publication_token).encode()).decode()
     environment = {**os.environ, "GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader", "GIT_CONFIG_VALUE_0": "AUTHORIZATION: basic " + auth}
     run("git", "-C", str(feed), "push", "origin", "HEAD:refs/heads/notenv-stable", env=environment)
     print(json.dumps(receipt))
